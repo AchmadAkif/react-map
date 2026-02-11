@@ -2,14 +2,16 @@
   "manifest_version": 3,
   "version": "1.0.0",
   "name": "My Extension",
-  "action": {
-    "default_popup": "index.html"
+  "devtools_page": "src/extension/devtools.html",
+  "background": {
+    "service_worker": "src/extension/background.js"
   },
-  "permissions": [
-    "scripting"
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/extension/content_script.js"]
+    }
   ],
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
-  ] 
+  "permissions": ["scripting"],
+  "host_permissions": ["http://*/*", "https://*/*"]
 }
