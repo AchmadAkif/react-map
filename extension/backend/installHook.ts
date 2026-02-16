@@ -12,17 +12,18 @@ if (!hasReactDevtoolsInstalled) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const reactInstances = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__.renderers;
-const instance = reactInstances.get(1);
-const instanceVersion = instance.version;
+const devtoolsGlobalHook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
+const reactInstances = devtoolsGlobalHook?.renderers;
+const instance = reactInstances?.get?.(1);
+const instanceVersion = instance?.version;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const devtoolsHook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
+const devtoolsHook = devtoolsGlobalHook;
 
 let __ReactMapFiberDOM;
 
 // Begin monkey-patch
 (function installHook() {
-  if (!hasReactDevtoolsInstalled) {
+  if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
     console.error(
       "[React-Map] Error: React Devtools needs to be installed first before using this extension.",
     );
