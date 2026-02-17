@@ -1,4 +1,4 @@
-const __isReactMapDebugMode = true;
+const isReactMapDebugMode = true;
 
 // eslint-disable-next-line no-prototype-builtins
 const hasReactDevtoolsInstalled = window.hasOwnProperty(
@@ -19,7 +19,7 @@ const instanceVersion = instance?.version;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const devtoolsHook = devtoolsGlobalHook;
 
-let __ReactMapFiberDOM;
+let ReactMapFiberDOM;
 
 // Begin monkey-patch
 (function installHook() {
@@ -31,7 +31,7 @@ let __ReactMapFiberDOM;
   }
 
   if (instance && instanceVersion) {
-    if (__isReactMapDebugMode)
+    if (isReactMapDebugMode)
       console.log("[React-Map] React version: ", instanceVersion);
 
     const __original_onCommitFiberRootFn = devtoolsHook.onCommitFiberRoot;
@@ -40,10 +40,10 @@ let __ReactMapFiberDOM;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...args: any[]
     ) {
-      __ReactMapFiberDOM = args[1];
+      ReactMapFiberDOM = args[1];
 
-      if (__isReactMapDebugMode)
-        console.log("[React-Map] DOM : ", __ReactMapFiberDOM);
+      if (isReactMapDebugMode)
+        console.log("[React-Map] DOM : ", ReactMapFiberDOM);
 
       return __original_onCommitFiberRootFn(...args);
     };
