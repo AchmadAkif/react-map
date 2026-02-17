@@ -20,7 +20,6 @@ const devtoolsHook = devtoolsGlobalHook;
 
 let ReactMapFiberDOM;
 
-// Begin monkey-patch
 (function installHook() {
   if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
     console.error(
@@ -35,6 +34,7 @@ let ReactMapFiberDOM;
 
     const __original_onCommitFiberRootFn = devtoolsHook.onCommitFiberRoot;
 
+    // Begin monkey-patch
     devtoolsHook.onCommitFiberRoot = function onCommitFiberRoot(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ...args: any[]

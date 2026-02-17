@@ -8,16 +8,16 @@
   },
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*"],
+      "matches": ["http://localhost/*", "https://localhost/*"],
       "js": ["content_script.js"]
     }
   ],
   "web_accessible_resources": [
     {
       "resources": ["installHook.js"],
-      "matches": ["http://*/*", "https://*/*"]
+      "matches": ["http://localhost/*", "https://localhost/*"]
     }
   ],
   "permissions": ["tabs", "activeTab"],
-  "host_permissions": ["http://*/*", "https://*/*"]
+  "host_permissions": ["http://localhost/*", "https://localhost/*"]
 }
