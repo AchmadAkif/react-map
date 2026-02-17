@@ -4,6 +4,11 @@ function injectScript(file: string, node: string) {
 
   scriptElement.setAttribute("type", "text/javascript");
   scriptElement.setAttribute("src", file);
+
+  if (!targetElement) {
+    return;
+  }
+
   targetElement.appendChild(scriptElement);
 }
 

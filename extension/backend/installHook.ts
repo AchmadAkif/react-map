@@ -16,7 +16,6 @@ const devtoolsGlobalHook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
 const reactInstances = devtoolsGlobalHook?.renderers;
 const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const devtoolsHook = devtoolsGlobalHook;
 
 let ReactMapFiberDOM;
