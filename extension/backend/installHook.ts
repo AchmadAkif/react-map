@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const isReactMapDebugMode = true;
 
 const hasReactDevtoolsInstalled = Object.hasOwn(
@@ -11,7 +12,6 @@ if (!hasReactDevtoolsInstalled) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const devtoolsGlobalHook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
 const reactInstances = devtoolsGlobalHook?.renderers;
 const instance = reactInstances?.get?.(1);
@@ -34,17 +34,22 @@ let ReactMapFiberDOM;
 
     const __original_onCommitFiberRootFn = devtoolsHook.onCommitFiberRoot;
 
-    // Begin monkey-patch
+    /* 
+      Begin monkey-patch react devtools onCommitFiberRoot function.
+      onCommitFiberRoot function will run every component changes, a state updates, or the app first loads.
+    */
     devtoolsHook.onCommitFiberRoot = function onCommitFiberRoot(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ...args: any[]
+      rendererID: number,
+      // The FiberRoot object provided by React DevTools' onCommitFiberRoot hook.
+      root: any,
+      ...rest: any[]
     ) {
-      ReactMapFiberDOM = args[1];
+      ReactMapFiberDOM = root;
 
       if (isReactMapDebugMode)
         console.log("[React-Map] DOM : ", ReactMapFiberDOM);
 
-      return __original_onCommitFiberRootFn(...args);
+      return __original_onCommitFiberRootFn(rendererID, root, ...rest);
     };
   }
 })();
