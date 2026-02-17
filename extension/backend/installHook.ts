@@ -1,7 +1,7 @@
 const isReactMapDebugMode = true;
 
-// eslint-disable-next-line no-prototype-builtins
-const hasReactDevtoolsInstalled = window.hasOwnProperty(
+const hasReactDevtoolsInstalled = Object.hasOwn(
+  window,
   "__REACT_DEVTOOLS_GLOBAL_HOOK__",
 );
 
