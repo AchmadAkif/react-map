@@ -1,15 +1,23 @@
 {
-  "manifest_version": 3,
+  "name": "React-Map",
   "version": "1.0.0",
-  "name": "My Extension",
-  "action": {
-    "default_popup": "index.html"
+  "manifest_version": 3,
+  "devtools_page": "devtools.html",
+  "background": {
+    "service_worker": "background.js"
   },
-  "permissions": [
-    "scripting"
+  "content_scripts": [
+    {
+      "matches": ["http://localhost/*", "https://localhost/*"],
+      "js": ["content_script.js"]
+    }
   ],
-  "host_permissions": [
-    "http://*/*",
-    "https://*/*"
-  ] 
+  "web_accessible_resources": [
+    {
+      "resources": ["installHook.js"],
+      "matches": ["http://localhost/*", "https://localhost/*"]
+    }
+  ],
+  "permissions": ["tabs", "activeTab"],
+  "host_permissions": ["http://localhost/*", "https://localhost/*"]
 }
