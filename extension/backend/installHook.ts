@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const isReactMapDebugMode = true;
+import { traverseFiber } from "./fiberCrawler";
+import type { FiberRoot } from "./reactInternal.types";
+
+const isReactMapDebugMode = import.meta.env.VITE_REACT_MAP_DEBUG_MODE;
 
 const hasReactDevtoolsInstalled = Object.hasOwn(
   window,
@@ -18,7 +21,7 @@ const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
 const devtoolsHook = devtoolsGlobalHook;
 
-let ReactMapFiberDOM;
+let ReactMapFiberDOM: FiberRoot;
 
 (function installHook() {
   if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
@@ -34,20 +37,18 @@ let ReactMapFiberDOM;
 
     const __original_onCommitFiberRootFn = devtoolsHook.onCommitFiberRoot;
 
-    /* 
-      Begin monkey-patch react devtools onCommitFiberRoot function.
-      onCommitFiberRoot function will run every component changes, a state updates, or the app first loads.
-    */
+    // Begin monkey-patch react devtools onCommitFiberRoot function.
+    // onCommitFiberRoot function will run every component changes, a state updates, or the app first loads.
     devtoolsHook.onCommitFiberRoot = function onCommitFiberRoot(
       rendererID: number,
-      // The FiberRoot object provided by React DevTools' onCommitFiberRoot hook.
       root: any,
       ...rest: any[]
     ) {
       ReactMapFiberDOM = root;
+      const currentRenderedNode = ReactMapFiberDOM.current;
+      const serializedNode = traverseFiber(currentRenderedNode);
 
-      if (isReactMapDebugMode)
-        console.log("[React-Map] DOM : ", ReactMapFiberDOM);
+      if (isReactMapDebugMode) console.log(serializedNode);
 
       return __original_onCommitFiberRootFn(rendererID, root, ...rest);
     };
