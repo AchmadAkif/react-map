@@ -21,8 +21,6 @@ const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
 const devtoolsHook = devtoolsGlobalHook;
 
-let ReactMapFiberDOM: FiberRoot;
-
 (function installHook() {
   if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
     console.error(
@@ -44,11 +42,16 @@ let ReactMapFiberDOM: FiberRoot;
       root: any,
       ...rest: any[]
     ) {
-      ReactMapFiberDOM = root;
-      const currentRenderedNode = ReactMapFiberDOM.current;
-      const serializedNode = traverseFiber(currentRenderedNode);
+      const ReactMapFiberDOM: FiberRoot = root;
 
-      if (isReactMapDebugMode) console.log(serializedNode);
+      try {
+        const currentRenderedNode = ReactMapFiberDOM.current;
+        const serializedNode = traverseFiber(currentRenderedNode);
+        if (isReactMapDebugMode) console.log(serializedNode);
+      } catch (error) {
+        console.error("[React Map] Error: ", error);
+        return;
+      }
 
       return __original_onCommitFiberRootFn(rendererID, root, ...rest);
     };
