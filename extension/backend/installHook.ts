@@ -2,7 +2,8 @@
 import { traverseFiber } from "./fiberCrawler";
 import type { FiberRoot } from "./reactInternal.types";
 
-const isReactMapDebugMode = import.meta.env.VITE_REACT_MAP_DEBUG_MODE;
+const isReactMapDebugMode =
+  import.meta.env.VITE_REACT_MAP_DEBUG_MODE === "true";
 
 const hasReactDevtoolsInstalled = Object.hasOwn(
   window,

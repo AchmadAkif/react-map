@@ -1,7 +1,9 @@
 import type { Fiber } from "./reactInternal.types";
 import type { SerializableFiberNode } from "./types";
 
-export const traverseFiber = (node: Fiber): SerializableFiberNode | null => {
+export const traverseFiber = (
+  node: Fiber | null,
+): SerializableFiberNode | null => {
   if (!node) return null;
 
   const serializedNode: SerializableFiberNode = {
@@ -25,9 +27,8 @@ const getComponentName = (node: Fiber): string => {
   return (
     node.type?.name ||
     node.elementType?.name ||
-    (typeof node.type === "string" ? node.type : "Anonymous Component") ||
-    (typeof node.elementType === "string"
-      ? node.elementType
-      : "Anonymous Component")
+    (typeof node.type === "string" ? node.type : null) ||
+    (typeof node.elementType === "string" ? node.elementType : null) ||
+    "Anonymous Component"
   );
 };
