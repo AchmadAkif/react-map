@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const isReactMapDebugMode = true;
+import { traverseFiber } from "./fiberCrawler";
+import type { FiberRoot } from "./reactInternal.types";
+
+const isReactMapDebugMode =
+  import.meta.env.VITE_REACT_MAP_DEBUG_MODE === "true";
 
 const hasReactDevtoolsInstalled = Object.hasOwn(
   window,
@@ -18,7 +22,19 @@ const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
 const devtoolsHook = devtoolsGlobalHook;
 
-let ReactMapFiberDOM;
+const debounce = (callback: (...args: any[]) => void, wait: number) => {
+  let timeoutId: number | null = null;
+
+  return (...args: any[]) => {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+
+    timeoutId = window.setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
+};
 
 (function installHook() {
   if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
@@ -34,21 +50,26 @@ let ReactMapFiberDOM;
 
     const __original_onCommitFiberRootFn = devtoolsHook.onCommitFiberRoot;
 
-    /* 
-      Begin monkey-patch react devtools onCommitFiberRoot function.
-      onCommitFiberRoot function will run every component changes, a state updates, or the app first loads.
-    */
+    // Debounce fiber traversal to improve performance
+    const debouncedFiberTraversal = debounce((root: FiberRoot) => {
+      try {
+        const currentRenderedNode = root.current;
+        const serializedNode = traverseFiber(currentRenderedNode);
+        if (isReactMapDebugMode) console.log(serializedNode);
+      } catch (error) {
+        console.error("[React Map] Error: ", error);
+        return;
+      }
+    }, 500);
+
+    // Begin monkey-patch react devtools onCommitFiberRoot function.
+    // onCommitFiberRoot function will run every component changes, a state updates, or the app first loads.
     devtoolsHook.onCommitFiberRoot = function onCommitFiberRoot(
       rendererID: number,
-      // The FiberRoot object provided by React DevTools' onCommitFiberRoot hook.
       root: any,
       ...rest: any[]
     ) {
-      ReactMapFiberDOM = root;
-
-      if (isReactMapDebugMode)
-        console.log("[React-Map] DOM : ", ReactMapFiberDOM);
-
+      debouncedFiberTraversal(root);
       return __original_onCommitFiberRootFn(rendererID, root, ...rest);
     };
   }
