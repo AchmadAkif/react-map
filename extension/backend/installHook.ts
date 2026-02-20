@@ -22,6 +22,16 @@ const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
 const devtoolsHook = devtoolsGlobalHook;
 
+const debounce = (callback: (...args: any[]) => void, wait: number) => {
+  let timeoutId: number;
+  return (...args: any[]) => {
+    window.clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
+};
+
 (function installHook() {
   if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
     console.error(
@@ -36,6 +46,18 @@ const devtoolsHook = devtoolsGlobalHook;
 
     const __original_onCommitFiberRootFn = devtoolsHook.onCommitFiberRoot;
 
+    // Debounce fiber traversal to improve performance
+    const debouncedFiberTraversal = debounce((root: FiberRoot) => {
+      try {
+        const currentRenderedNode = root.current;
+        const serializedNode = traverseFiber(currentRenderedNode);
+        if (isReactMapDebugMode) console.log(serializedNode);
+      } catch (error) {
+        console.error("[React Map] Error: ", error);
+        return;
+      }
+    }, 500);
+
     // Begin monkey-patch react devtools onCommitFiberRoot function.
     // onCommitFiberRoot function will run every component changes, a state updates, or the app first loads.
     devtoolsHook.onCommitFiberRoot = function onCommitFiberRoot(
@@ -43,17 +65,7 @@ const devtoolsHook = devtoolsGlobalHook;
       root: any,
       ...rest: any[]
     ) {
-      const ReactMapFiberDOM: FiberRoot = root;
-
-      try {
-        const currentRenderedNode = ReactMapFiberDOM.current;
-        const serializedNode = traverseFiber(currentRenderedNode);
-        if (isReactMapDebugMode) console.log(serializedNode);
-      } catch (error) {
-        console.error("[React Map] Error: ", error);
-        return;
-      }
-
+      debouncedFiberTraversal(root);
       return __original_onCommitFiberRootFn(rendererID, root, ...rest);
     };
   }
