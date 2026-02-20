@@ -23,9 +23,13 @@ const instanceVersion = instance?.version;
 const devtoolsHook = devtoolsGlobalHook;
 
 const debounce = (callback: (...args: any[]) => void, wait: number) => {
-  let timeoutId: number;
+  let timeoutId: number | null = null;
+
   return (...args: any[]) => {
-    window.clearTimeout(timeoutId);
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+
     timeoutId = window.setTimeout(() => {
       callback(...args);
     }, wait);
