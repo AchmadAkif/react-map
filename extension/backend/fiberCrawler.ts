@@ -1,6 +1,18 @@
 import type { Fiber } from "./reactInternal.types";
 import type { SerializableFiberNode } from "./types";
 
+/**
+ * Recursively traverses a React Fiber tree and converts it into a serializable structure.
+ *
+ * @param node - The Fiber node to traverse, or null if no node exists.
+ * @returns A serialized representation of the Fiber node and its children, or null if the input node is null.
+ *
+ * @example
+ * ```typescript
+ * const fiberRoot = // ... get fiber node from React component
+ * const serialized = traverseFiber(fiberRoot);
+ * ```
+ */
 export const traverseFiber = (
   node: Fiber | null,
 ): SerializableFiberNode | null => {
