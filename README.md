@@ -42,7 +42,7 @@ As the extension is in development, it is not yet available on the Chrome Web St
 
 ### For Firefox
 
-*(Instructions for Firefox will be added once packaging is finalized.)*
+*(Not yet available. Will be added in the future)*
 
 ## Usage
 
