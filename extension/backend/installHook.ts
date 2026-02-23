@@ -55,9 +55,19 @@ const debounce = (callback: (...args: any[]) => void, wait: number) => {
       try {
         const currentRenderedNode = root.current;
         const serializedNode = traverseFiber(currentRenderedNode);
+
+        // Send message to content-script
+        window.postMessage(
+          {
+            source: "react-map-extension",
+            payload: serializedNode,
+          },
+          window.location.origin,
+        );
+
         if (isReactMapDebugMode) console.log(serializedNode);
       } catch (error) {
-        console.error("[React Map] Error: ", error);
+        console.error("[React-Map] Error: ", error);
         return;
       }
     }, 500);
