@@ -45,8 +45,10 @@ function injectWhenNodeAvailable(file: string, node: string) {
 // Listen message from user app(webpage context) *installHook.ts*
 window.addEventListener("message", (e) => {
   const message = e.data;
-  // Only accept messages that we know are ours. Note that this is not foolproof
-  // and the page can easily spoof messages if it wants to.
+  /**
+   * Only accept messages that we know are ours. Note that this is not foolproof
+   * and the page can easily spoof messages if it wants to.
+   */
   if (
     typeof message !== "object" ||
     message === null ||
