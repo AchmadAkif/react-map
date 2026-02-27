@@ -1,6 +1,3 @@
-const isReactMapDebugMode =
-  import.meta.env.VITE_REACT_MAP_DEBUG_MODE === "true";
-
 function injectScript(file: string, node: string) {
   const targetElement = document.getElementsByTagName(node)[0];
   const scriptElement = document.createElement("script");
@@ -58,13 +55,7 @@ window.addEventListener("message", (e) => {
   }
 
   // Pass message to background
-  chrome.runtime.sendMessage(message, () => {
-    if (isReactMapDebugMode)
-      console.log(
-        "[React-Map] : received data from webpage, sending to DevTools",
-        message,
-      );
-  });
+  chrome.runtime.sendMessage(message);
 });
 
 injectWhenNodeAvailable(chrome.runtime.getURL("/installHook.js"), "body");
