@@ -1,18 +1,39 @@
 import type { Message, Port } from "./backend/types";
 
-const isReactMapDebugMode =
-  import.meta.env.VITE_REACT_MAP_DEBUG_MODE === "true";
+/**
+ * Maps panel instances to their associated tab IDs for managing multiple panel connections per tab.
+ * @type {Record<number, Port>}
+ */
+const connections: Record<number, Port> = {};
 
 const handleConnection = (port: Port) => {
-  if (isReactMapDebugMode) {
-    console.log("Connection attempt received, port name:", port.name);
-    if (port.name === "react-map-frontend") {
-      console.log("connection established");
+  const connectionListener = (message: { tabId?: number; type?: string }) => {
+    // Store the connection based on tabId
+    if (message.tabId) {
+      connections[message.tabId] = port;
+      console.log(`Panel connected for tab ${message.tabId}`);
     }
-  }
 
-  port.onMessage.addListener((msg) => {
-    console.log(msg);
+    // Forward messages to content script if needed
+    if (message.type === "panel-init" && message.tabId) {
+      chrome.tabs.sendMessage(message.tabId, {
+        type: "devtools-ready",
+        source: "react-map-extension",
+      });
+    }
+  };
+
+  port.onMessage.addListener(connectionListener);
+
+  port.onDisconnect.addListener(() => {
+    port.onMessage.removeListener(connectionListener);
+    // Remove connection when port disconnects
+    Object.keys(connections).forEach((tabId) => {
+      if (connections[Number(tabId)] === port) {
+        delete connections[Number(tabId)];
+        console.log(`Panel disconnected for tab ${tabId}`);
+      }
+    });
   });
 };
 
@@ -33,11 +54,13 @@ const handleMessage = (
     return;
   }
 
-  if (isReactMapDebugMode)
-    console.log(
-      `[React-Map] : received data from extension ID: ${sender.id}`,
-      message,
-    );
+  console.log(`received message from ${sender.tab?.id}: `, message);
+
+  // Forward message to the devtools panel for this tab
+  const tabId = sender.tab?.id;
+  if (tabId && connections[tabId]) {
+    connections[tabId].postMessage(message);
+  }
 
   // This response is only to prevent "The message port closed before a response was received" console warnings
   sendResponse({ status: 200, message: "message received" });
