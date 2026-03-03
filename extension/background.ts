@@ -1,40 +1,30 @@
 import type { Message, Port } from "./backend/types";
 
 /**
- * Maps panel instances to their associated tab IDs for managing multiple panel connections per tab.
+ * Map of active port connections indexed by tab ID.
  * @type {Record<number, Port>}
  */
 const connections: Record<number, Port> = {};
 
-const handleConnection = (port: Port) => {
-  const connectionListener = (message: { tabId?: number; type?: string }) => {
-    // Store the connection based on tabId
-    if (message.tabId) {
-      connections[message.tabId] = port;
-      console.log(`Panel connected for tab ${message.tabId}`);
-    }
+/**
+ * List of allowed message sources that are permitted to communicate with the background script.
+ * @type {string[]}
+ */
+const allowedMsgSources = ["react-map-extension", "react-map-panel"];
 
-    // Forward messages to content script if needed
-    if (message.type === "panel-init" && message.tabId) {
-      chrome.tabs.sendMessage(message.tabId, {
-        type: "devtools-ready",
-        source: "react-map-extension",
-      });
-    }
+const handleConnection = (port: Port) => {
+  const portMessageListener = (message: Message) => {
+    console.log(message);
   };
 
-  port.onMessage.addListener(connectionListener);
+  const portDisconnectListener = () => {
+    port.onMessage.removeListener(portMessageListener);
+  };
 
-  port.onDisconnect.addListener(() => {
-    port.onMessage.removeListener(connectionListener);
-    // Remove connection when port disconnects
-    Object.keys(connections).forEach((tabId) => {
-      if (connections[Number(tabId)] === port) {
-        delete connections[Number(tabId)];
-        console.log(`Panel disconnected for tab ${tabId}`);
-      }
-    });
-  });
+  port.onMessage.addListener(portMessageListener);
+  port.onDisconnect.addListener(portDisconnectListener);
+
+  connections[Number(port.name)] = port;
 };
 
 const handleMessage = (
@@ -49,18 +39,12 @@ const handleMessage = (
   if (
     typeof message !== "object" ||
     message === null ||
-    message.source !== "react-map-extension"
+    !allowedMsgSources.includes(message.source)
   ) {
     return;
   }
 
   console.log(`received message from ${sender.tab?.id}: `, message);
-
-  // Forward message to the devtools panel for this tab
-  const tabId = sender.tab?.id;
-  if (tabId && connections[tabId]) {
-    connections[tabId].postMessage(message);
-  }
 
   // This response is only to prevent "The message port closed before a response was received" console warnings
   sendResponse({ status: 200, message: "message received" });
