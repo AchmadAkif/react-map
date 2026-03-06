@@ -2,7 +2,7 @@
  * List of allowed message sources that are permitted to communicate with the background script.
  * @type {string[]}
  */
-const allowedMsgSources = ["react-map-extension", "react-map-panel"];
+const allowedMsgSources = ["react-map-extension"];
 
 function injectScript(file: string, node: string) {
   const targetElement = document.getElementsByTagName(node)[0];
