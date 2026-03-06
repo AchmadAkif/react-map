@@ -1,10 +1,10 @@
-import type { Message, Port } from "./backend/types";
+import type { Message } from "./backend/types";
 
 /**
  * Map of active port connections indexed by tab ID.
- * @type {Record<number, Port>}
+ * @type {Record<number, chrome.runtime.Port>}
  */
-const connections: Record<number, Port> = {};
+const connections: Record<number, chrome.runtime.Port> = {};
 
 /**
  * List of allowed message sources that are permitted to communicate with the background script.
@@ -12,26 +12,36 @@ const connections: Record<number, Port> = {};
  */
 const allowedMsgSources = ["react-map-extension", "react-map-panel"];
 
-const handleConnection = (port: Port) => {
+const handleConnection = (port: chrome.runtime.Port) => {
+  const tabId = Number(port.name);
+
   const portMessageListener = (message: Message) => {
-    console.log(message);
+    if (message.source === "react-map-panel" && message.payload === "init") {
+      connections[tabId] = port;
+      console.log(`tab ${tabId} connected`, message);
+
+      return;
+    }
+    console.log(message.payload);
+    // may not be necessary, this is an attempt to keep the port alive
+    return true;
   };
 
   const portDisconnectListener = () => {
     port.onMessage.removeListener(portMessageListener);
+    delete connections[tabId];
+    console.log(`tab ${tabId} disconnected`);
   };
 
   port.onMessage.addListener(portMessageListener);
   port.onDisconnect.addListener(portDisconnectListener);
-
-  connections[Number(port.name)] = port;
 };
 
 const handleMessage = (
   message: Message,
   sender: chrome.runtime.MessageSender,
-  sendResponse: (response?: object) => void,
 ) => {
+  const senderTabId = sender.tab?.id;
   /**
    * Only accept messages that we know are ours. Note that this is not foolproof
    * and the page can easily spoof messages if it wants to.
@@ -44,10 +54,26 @@ const handleMessage = (
     return;
   }
 
-  console.log(`received message from ${sender.tab?.id}: `, message);
+  if (
+    message.source === "react-map-extension" &&
+    senderTabId !== undefined &&
+    senderTabId in connections
+  ) {
+    const currentFiberNode = message;
+    connections[senderTabId].postMessage({
+      source: "react-map-backend",
+      payload: currentFiberNode,
+    });
 
-  // This response is only to prevent "The message port closed before a response was received" console warnings
-  sendResponse({ status: 200, message: "message received" });
+    return;
+  }
+
+  /**
+   * This response is only to prevent "The message port closed before a response was received" console warnings.
+   * For more context, refer to this github issue:
+   * @see {@link https://github.com/mozilla/webextension-polyfill/issues/130#issue-333539552}
+   */
+  return Promise.resolve("Dummy response to keep the console quiet");
 };
 
 chrome.runtime.onConnect.addListener(handleConnection);

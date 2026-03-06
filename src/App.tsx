@@ -17,6 +17,17 @@ function App() {
     const createdPort = chrome.runtime.connect({
       name: chrome.devtools.inspectedWindow.tabId.toString(),
     });
+
+    createdPort.postMessage({
+      source: "react-map-panel",
+      payload: "init",
+    });
+
+    createdPort.onMessage.addListener((message) => {
+      if (message.source === "react-map-background") {
+        console.log(message);
+      }
+    });
     portRef.current = createdPort;
   }, []);
 
