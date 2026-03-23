@@ -10,7 +10,7 @@ const connections: Record<number, chrome.runtime.Port> = {};
  * List of allowed message sources that are permitted to communicate with the background script.
  * @type {string[]}
  */
-const allowedMsgSources = ["react-map-extension", "react-map-panel"];
+const allowedMsgSources = ["react-map-extension"];
 
 const handleConnection = (port: chrome.runtime.Port) => {
   const tabId = Number(port.name);
