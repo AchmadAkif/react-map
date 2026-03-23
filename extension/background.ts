@@ -69,11 +69,12 @@ const handleMessage = (
   }
 
   /**
-   * This response is only to prevent "The message port closed before a response was received" console warnings.
-   * For more context, refer to this github issue:
+   * No response is sent because there are currently no sendMessage callers expecting one.
+   * For more context on related console warnings, refer to this GitHub issue:
    * @see {@link https://github.com/mozilla/webextension-polyfill/issues/130#issue-333539552}
    */
-  return Promise.resolve("Dummy response to keep the console quiet");
+
+  return;
 };
 
 chrome.runtime.onConnect.addListener(handleConnection);
