@@ -1,5 +1,8 @@
-const isReactMapDebugMode =
-  import.meta.env.VITE_REACT_MAP_DEBUG_MODE === "true";
+/**
+ * List of allowed message sources that are permitted to communicate with the background script.
+ * @type {string[]}
+ */
+const allowedMsgSources = ["react-map-extension"];
 
 function injectScript(file: string, node: string) {
   const targetElement = document.getElementsByTagName(node)[0];
@@ -45,24 +48,20 @@ function injectWhenNodeAvailable(file: string, node: string) {
 // Listen message from user app(webpage context) *installHook.ts*
 window.addEventListener("message", (e) => {
   const message = e.data;
-  // Only accept messages that we know are ours. Note that this is not foolproof
-  // and the page can easily spoof messages if it wants to.
+  /**
+   * Only accept messages that we know are ours. Note that this is not foolproof
+   * and the page can easily spoof messages if it wants to.
+   */
   if (
     typeof message !== "object" ||
     message === null ||
-    message.source !== "react-map-extension"
+    !allowedMsgSources.includes(message.source)
   ) {
     return;
   }
 
   // Pass message to background
-  chrome.runtime.sendMessage(message, () => {
-    if (isReactMapDebugMode)
-      console.log(
-        "[React-Map] : received data from webpage, sending to DevTools",
-        message,
-      );
-  });
+  chrome.runtime.sendMessage(message);
 });
 
 injectWhenNodeAvailable(chrome.runtime.getURL("/installHook.js"), "body");
