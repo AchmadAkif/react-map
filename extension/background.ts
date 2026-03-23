@@ -23,8 +23,6 @@ const handleConnection = (port: chrome.runtime.Port) => {
       return;
     }
     console.log(message.payload);
-    // may not be necessary, this is an attempt to keep the port alive
-    return true;
   };
 
   const portDisconnectListener = () => {
