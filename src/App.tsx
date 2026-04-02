@@ -1,17 +1,11 @@
-import { useEffect, useRef } from "react";
-import type { Message } from "../extension/backend/types";
+import { useEffect, useRef, useState } from "react";
+import type { Message, MessagePayload } from "../extension/backend/types";
 import "./App.css";
 
 function App() {
   const portRef = useRef<chrome.runtime.Port | null>(null);
-
-  const handleClick = () => {
-    const currentPort = portRef.current;
-    currentPort?.postMessage({
-      source: "react-map-panel",
-      payload: `Hi! from tab id ${chrome.devtools.inspectedWindow.tabId}`,
-    });
-  };
+  const [currentFiberTree, setCurrentFiberTree] =
+    useState<MessagePayload | null>(null);
 
   useEffect(() => {
     // Create connection with background-service on mount
@@ -25,8 +19,13 @@ function App() {
     });
 
     const onMessageListener = (message: Message) => {
-      if (message.source === "react-map-backend") {
+      if (
+        message.source === "react-map-backend" &&
+        typeof message.payload !== "string"
+      ) {
         console.log(message);
+        const fiberTree = message.payload;
+        setCurrentFiberTree(fiberTree);
       }
     };
 
@@ -41,7 +40,19 @@ function App() {
     };
   }, []);
 
-  return <button onClick={handleClick}>Say Hi!</button>;
+  if (typeof currentFiberTree === "object" && currentFiberTree !== null) {
+    return <h1>{currentFiberTree.name}</h1>;
+  }
+
+  return (
+    <>
+      <h2>
+        Cannot render react component tree. Triggering a setState() usually
+        fixes this.
+      </h2>
+      <p>Note: React-Sight works best on local projects with React v16+</p>
+    </>
+  );
 }
 
 export default App;

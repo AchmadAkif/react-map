@@ -4,6 +4,11 @@ export type SerializableFiberNode = {
 };
 
 export type Message = {
-  payload: object | string;
+  payload: MessagePayload | string;
   source: string;
+};
+
+export type MessagePayload = {
+  name: string;
+  children: object[];
 };
