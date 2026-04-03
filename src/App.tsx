@@ -40,10 +40,17 @@ function App() {
     };
   }, []);
 
+  /**
+   * TODO
+   * @see https://github.com/AchmadAkif/react-map/issues/15
+   */
   if (typeof currentFiberTree === "object" && currentFiberTree !== null) {
     return <h1>{currentFiberTree.name}</h1>;
   }
-
+  /**
+   * TODO
+   * @see https://github.com/AchmadAkif/react-map/issues/16
+   */
   return (
     <>
       <h2>
