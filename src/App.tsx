@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import type { Message, MessagePayload } from "../extension/backend/types";
+import HierarchyTree from "./components/HierarchyTree/HierarchyTree.component";
 import "./App.css";
+
+import type { Message } from "../extension/backend/types";
+import type { RawNodeDatum } from "react-d3-tree";
 
 function App() {
   const portRef = useRef<chrome.runtime.Port | null>(null);
-  const [currentFiberTree, setCurrentFiberTree] =
-    useState<MessagePayload | null>(null);
+  const [currentFiberTree, setCurrentFiberTree] = useState<RawNodeDatum | null>(
+    null,
+  );
 
   useEffect(() => {
     // Create connection with background-service on mount
@@ -45,7 +49,7 @@ function App() {
    * @see https://github.com/AchmadAkif/react-map/issues/15
    */
   if (typeof currentFiberTree === "object" && currentFiberTree !== null) {
-    return <h1>{currentFiberTree.name}</h1>;
+    return <HierarchyTree data={currentFiberTree} />;
   }
   /**
    * TODO
