@@ -1,14 +1,6 @@
-export type SerializableFiberNode = {
-  name: string;
-  children: SerializableFiberNode[];
-};
+import type { RawNodeDatum } from "react-d3-tree";
 
 export type Message = {
-  payload: MessagePayload | string;
+  payload: RawNodeDatum | string;
   source: string;
-};
-
-export type MessagePayload = {
-  name: string;
-  children: object[];
 };

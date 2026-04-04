@@ -1,5 +1,5 @@
 import type { Fiber } from "./reactInternal.types";
-import type { SerializableFiberNode } from "./types";
+import type { RawNodeDatum } from "react-d3-tree";
 
 /**
  * Recursively traverses a React Fiber tree and converts it into a serializable structure.
@@ -13,12 +13,10 @@ import type { SerializableFiberNode } from "./types";
  * const serialized = traverseFiber(fiberRoot);
  * ```
  */
-export const traverseFiber = (
-  node: Fiber | null,
-): SerializableFiberNode | null => {
+export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
   if (!node) return null;
 
-  const serializedNode: SerializableFiberNode = {
+  const serializedNode: RawNodeDatum = {
     name: getComponentName(node),
     children: [],
   };
@@ -27,7 +25,9 @@ export const traverseFiber = (
   while (child) {
     const serializedChild = traverseFiber(child);
     if (serializedChild) {
-      serializedNode.children.push(serializedChild);
+      const children =
+        serializedNode.children ?? (serializedNode.children = []);
+      children.push(serializedChild);
     }
     child = child.sibling;
   }
