@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import HierarchyTree from "./components/HierarchyTree/HierarchyTree.component";
-import "./App.css";
+import { MainContainer } from "./containers";
 
 import type { Message } from "../extension/backend/types";
 import type { RawNodeDatum } from "react-d3-tree";
@@ -45,11 +44,11 @@ function App() {
   }, []);
 
   /**
-   * TODO
+   * Work In-Progress
    * @see https://github.com/AchmadAkif/react-map/issues/15
    */
   if (typeof currentFiberTree === "object" && currentFiberTree !== null) {
-    return <HierarchyTree data={currentFiberTree} />;
+    return <MainContainer data={currentFiberTree} />;
   }
   /**
    * TODO
