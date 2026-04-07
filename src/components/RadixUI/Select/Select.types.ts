@@ -1,4 +1,4 @@
-import type { TreeOrientation } from "../../types";
+import type { TreeOrientation } from "../../../types";
 
 export interface SelectProps {
   options: string[];
