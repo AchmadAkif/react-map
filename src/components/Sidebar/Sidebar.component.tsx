@@ -1,4 +1,4 @@
-import { Select, Slider } from "../RadixUI";
+import { Select, Slider, TextField } from "../RadixUI";
 
 import type { SidebarProps } from "./Sidebar.types";
 
@@ -21,13 +21,23 @@ const Sidebar = ({
       <Slider
         defaultValue={[nodeSpacing.x]}
         size="1"
-        onValueChange={(value) => onNodeSpacingChange(value, "x")}
+        onValueChange={(value) => onNodeSpacingChange(value[0], "x")}
+      />
+      <TextField
+        type="number"
+        value={nodeSpacing.x}
+        onValueChange={(value) => onNodeSpacingChange(value as number, "x")}
       />
       <p>Vertical Spacing</p>
       <Slider
         defaultValue={[nodeSpacing.y]}
         size="1"
-        onValueChange={(value) => onNodeSpacingChange(value, "y")}
+        onValueChange={(value) => onNodeSpacingChange(value[0], "y")}
+      />
+      <TextField
+        type="number"
+        value={nodeSpacing.y}
+        onValueChange={(value) => onNodeSpacingChange(value as number, "y")}
       />
     </div>
   );

@@ -16,9 +16,8 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
     setTreeOrientation(orientation);
   };
 
-  const handleNodeSpacingChange = (value: number[], axis: "x" | "y") => {
-    setNodeSpacing((prev) => ({ ...prev, [axis]: value[0] }));
-    console.log(value);
+  const handleNodeSpacingChange = (value: number, axis: "x" | "y") => {
+    setNodeSpacing((prev) => ({ ...prev, [axis]: value }));
   };
 
   return (
