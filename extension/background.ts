@@ -57,12 +57,11 @@ const handleMessage = (
     senderTabId !== undefined &&
     senderTabId in connections
   ) {
-    const currentFiberNode = message;
+    const currentFiberNode = message.payload;
     connections[senderTabId].postMessage({
       source: "react-map-backend",
       payload: currentFiberNode,
     });
-
     return;
   }
 

@@ -1,17 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { MainContainer } from "./containers";
+
 import type { Message } from "../extension/backend/types";
-import "./App.css";
+import type { RawNodeDatum } from "react-d3-tree";
 
 function App() {
   const portRef = useRef<chrome.runtime.Port | null>(null);
-
-  const handleClick = () => {
-    const currentPort = portRef.current;
-    currentPort?.postMessage({
-      source: "react-map-panel",
-      payload: `Hi! from tab id ${chrome.devtools.inspectedWindow.tabId}`,
-    });
-  };
+  const [currentFiberTree, setCurrentFiberTree] = useState<RawNodeDatum | null>(
+    null,
+  );
 
   useEffect(() => {
     // Create connection with background-service on mount
@@ -25,8 +22,13 @@ function App() {
     });
 
     const onMessageListener = (message: Message) => {
-      if (message.source === "react-map-backend") {
+      if (
+        message.source === "react-map-backend" &&
+        typeof message.payload !== "string"
+      ) {
         console.log(message);
+        const fiberTree = message.payload;
+        setCurrentFiberTree(fiberTree);
       }
     };
 
@@ -41,7 +43,26 @@ function App() {
     };
   }, []);
 
-  return <button onClick={handleClick}>Say Hi!</button>;
+  /**
+   * Work In-Progress
+   * @see https://github.com/AchmadAkif/react-map/issues/15
+   */
+  if (typeof currentFiberTree === "object" && currentFiberTree !== null) {
+    return <MainContainer data={currentFiberTree} />;
+  }
+  /**
+   * TODO
+   * @see https://github.com/AchmadAkif/react-map/issues/16
+   */
+  return (
+    <>
+      <h2>
+        Cannot render react component tree. Triggering a setState() usually
+        fixes this.
+      </h2>
+      <p>Note: React-Sight works best on local projects with React v16+</p>
+    </>
+  );
 }
 
 export default App;
