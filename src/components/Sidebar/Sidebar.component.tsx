@@ -13,31 +13,31 @@ const Sidebar = ({
       <h2 className="text-lg font-bold">React-Map</h2>
       <p>Tree Orientation</p>
       <Select
-        defaultValue={treeOrientation}
+        value={treeOrientation}
         onValueChange={onSetOrientation}
         options={["Vertical", "Horizontal"]}
       />
       <p>Horizontal Spacing</p>
       <Slider
-        defaultValue={[nodeSpacing.x]}
+        value={[nodeSpacing.x]}
         size="1"
         onValueChange={(value) => onNodeSpacingChange(value[0], "x")}
       />
       <TextField
         type="number"
         value={nodeSpacing.x}
-        onValueChange={(value) => onNodeSpacingChange(value as number, "x")}
+        onValueChange={(value) => onNodeSpacingChange(Number(value), "x")}
       />
       <p>Vertical Spacing</p>
       <Slider
-        defaultValue={[nodeSpacing.y]}
+        value={[nodeSpacing.y]}
         size="1"
         onValueChange={(value) => onNodeSpacingChange(value[0], "y")}
       />
       <TextField
         type="number"
         value={nodeSpacing.y}
-        onValueChange={(value) => onNodeSpacingChange(value as number, "y")}
+        onValueChange={(value) => onNodeSpacingChange(Number(value), "y")}
       />
     </div>
   );

@@ -2,10 +2,10 @@ import { Slider as SliderComponent } from "@radix-ui/themes";
 
 import type { SliderProps } from "./Slider.types";
 
-const Slider = ({ defaultValue, size, onValueChange }: SliderProps) => {
+const Slider = ({ value, size, onValueChange }: SliderProps) => {
   return (
     <SliderComponent
-      defaultValue={defaultValue}
+      value={value}
       size={size}
       onValueChange={onValueChange}
       max={500}

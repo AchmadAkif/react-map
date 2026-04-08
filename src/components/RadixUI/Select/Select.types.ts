@@ -2,6 +2,6 @@ import type { TreeOrientation } from "../../../types";
 
 export interface SelectProps {
   options: string[];
-  defaultValue: TreeOrientation;
+  value: TreeOrientation;
   onValueChange: (orientation: TreeOrientation) => void;
 }

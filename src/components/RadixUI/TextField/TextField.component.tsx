@@ -7,7 +7,13 @@ const TextField = ({ type, value, onValueChange }: TextFieldProps) => {
     <TextFieldComponent.Root
       type={type}
       value={value}
-      onChange={(e) => onValueChange(e.target.value)}
+      onChange={(e) =>
+        onValueChange(
+          type === "number"
+            ? e.currentTarget.valueAsNumber
+            : e.currentTarget.value,
+        )
+      }
     />
   );
 };
