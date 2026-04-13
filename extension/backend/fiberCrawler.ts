@@ -1,3 +1,5 @@
+import * as utils from "./utils";
+
 import type { Fiber } from "./reactInternal.types";
 import type { RawNodeDatum } from "react-d3-tree";
 
@@ -16,31 +18,31 @@ import type { RawNodeDatum } from "react-d3-tree";
 export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
   if (!node) return null;
 
-  const serializedNode: RawNodeDatum = {
-    name: getComponentName(node),
+  /**
+   * TODO: Get component state and props
+   * @see https://github.com/AchmadAkif/react-map/issues/20
+   */
+  const treeData: RawNodeDatum = {
+    name: utils.getComponentName(node),
     children: [],
+    state: null,
+    props: null,
+    isDOM: null,
   };
 
   let child = node.child;
   while (child) {
-    const serializedChild = traverseFiber(child);
-    if (serializedChild) {
-      const children =
-        serializedNode.children ?? (serializedNode.children = []);
-      children.push(serializedChild);
+    const treeChild = traverseFiber(child);
+    if (treeChild) {
+      const children = treeData.children ?? (treeData.children = []);
+
+      // Skip raw text nodes inside HTML
+      if (child.tag !== 6) {
+        children.push(treeChild);
+      }
     }
     child = child.sibling;
   }
 
-  return serializedNode;
-};
-
-const getComponentName = (node: Fiber): string => {
-  return (
-    node.type?.name ||
-    node.elementType?.name ||
-    (typeof node.type === "string" ? node.type : null) ||
-    (typeof node.elementType === "string" ? node.elementType : null) ||
-    "Anonymous Component"
-  );
+  return treeData;
 };

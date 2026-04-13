@@ -4,16 +4,16 @@ In this project, we interact directly with React's internal "Fiber" nodes. Every
 The following table serves as a reference for the tag numbers encountered during tree traversal in React v16 through v18+.
 
 Tag,Variable Name,Description,Crawler Action
-0,FunctionComponent,Standard functional component.,Process & Render
-1,ClassComponent,Standard ES6 class component.,Process & Render
+0,FunctionComponent,Standard functional component.
+1,ClassComponent,Standard ES6 class component.
 3,HostRoot,"The ""Root"" container of the React tree.",Identify as Start Node
 5,HostComponent,"Standard HTML elements (div, span, etc.).",Optional Render
-6,HostText,Raw text nodes inside elements.,Skip (Too granular)
-8,Mode,<StrictMode> or <ConcurrentMode>.,Skip (Internal Wrapper)
-10,ContextProvider,The .Provider of a React Context.,Process & Render
-11,ForwardRef,Components using React.forwardRef().,Process & Render
-15,MemoComponent,Components using React.memo().,Process & Render
-22,Offscreen,Hidden or Suspended components.,Identify as Inactive
+6,HostText,Raw text nodes inside elements.
+8,Mode,<StrictMode> or <ConcurrentMode>.
+10,ContextProvider,The .Provider of a React Context.
+11,ForwardRef,Components using React.forwardRef().
+15,MemoComponent,Components using React.memo().
+22,Offscreen,Hidden or Suspended components.
 
 Why We Document This
 React's internal Fiber structure is circular and complex. When we "crawl" the tree to build our D3 map, we use these tags to make split-second decisions:

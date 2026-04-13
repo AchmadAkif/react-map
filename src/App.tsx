@@ -26,7 +26,6 @@ function App() {
         message.source === "react-map-backend" &&
         typeof message.payload !== "string"
       ) {
-        console.log(message);
         const fiberTree = message.payload;
         setCurrentFiberTree(fiberTree);
       }
