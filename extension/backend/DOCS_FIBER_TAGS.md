@@ -1,7 +1,6 @@
-React Fiber Tag Reference
-In this project, we interact directly with React's internal "Fiber" nodes. Every node in the Fiber tree has a .tag property—a numeric value representing the WorkTag. This tag tells us exactly what kind of component or entity the node represents before we even look at its name or props.
+# React Fiber Tag Reference
 
-The following table serves as a reference for the tag numbers encountered during tree traversal in React v16 through v18+.
+This document tracks the internal React `WorkTag` values used by the **React-Map** crawler. These tags are found on the `.tag` property of every Fiber node and are used to determine the type of component or internal process represented by that node.
 
 Tag,Variable Name,Description,Crawler Action
 0,FunctionComponent,Standard functional component.
@@ -15,17 +14,35 @@ Tag,Variable Name,Description,Crawler Action
 15,MemoComponent,Components using React.memo().
 22,Offscreen,Hidden or Suspended components.
 
-Why We Document This
-React's internal Fiber structure is circular and complex. When we "crawl" the tree to build our D3 map, we use these tags to make split-second decisions:
+| Tag    | Variable Name       | Description                                   | Crawler Action              |
+| :----- | :------------------ | :-------------------------------------------- | :-------------------------- |
+| **0**  | `FunctionComponent` | Standard functional component.                | **Process & Render**        |
+| **1**  | `ClassComponent`    | Standard ES6 class component.                 | **Process & Render**        |
+| **3**  | `HostRoot`          | The "Root" container of the React tree.       | **Identify as Start Node**  |
+| **5**  | `HostComponent`     | Standard HTML elements (`div`, `span`, etc.). | **Optional Render**         |
+| **6**  | `HostText`          | Raw text nodes inside elements.               | **Skip** (Too granular)     |
+| **8**  | `Mode`              | `<StrictMode>` or `<ConcurrentMode>`.         | **Skip** (Internal Wrapper) |
+| **10** | `ContextProvider`   | The `.Provider` of a React Context.           | **Process & Render**        |
+| **11** | `ForwardRef`        | Components using `React.forwardRef()`.        | **Process & Render**        |
+| **13** | `SuspenseComponent` | A `<Suspense>` boundary.                      | **Process & Render**        |
+| **15** | `MemoComponent`     | Components using `React.memo()`.              | **Process & Render**        |
+| **22** | `Offscreen`         | Hidden or Suspended components.               | **Identify as Inactive**    |
 
-Filtering: We use Tag 8 (Mode) and Tag 6 (HostText) to "jump" over nodes that don't add value to a component hierarchy map.
+## Implementation Usage
 
-Naming: If a node's type is null, the Tag is our only way to know if we are looking at a FiberRoot or a Fragment.
+In our `fiberCrawler.ts`, we use these tags to make logic decisions without relying on the often-minified `type.name` property.
 
-Recursion Safety: Understanding tags helps us know when to look for .child vs when we've reached a terminal leaf (like a HostText).
+### Why Tag 8 is Skipped
 
-Source of Truth
+Tag 8 represents a "Mode" node. These are invisible wrappers that React uses to enforce rules (like Strict Mode). Because they do not render a physical UI element or contain business logic, we jump straight to their `.child` to keep the visualization clean.
+
+### Handling HostRoot (Tag 3)
+
+The HostRoot is the entry point. We use this to distinguish the very top of the application from standard components. If `node.type` is null and `node.tag === 3`, we label it as **"FiberRoot"**.
+
+## Source of Truth
+
 These values are derived from the official React source:
-packages/react-reconciler/src/ReactWorkTags.js
+`packages/react-reconciler/src/ReactWorkTags.js`
 
-Warning: These are internal constants. While stable across major versions, they are subject to change by the React team without notice in minor or major updates.
+> **Warning:** These are internal constants. While stable across major versions, they are subject to change by the React team without notice in minor or major updates.
