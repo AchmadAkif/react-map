@@ -11,7 +11,6 @@ This project is being developed to fulfill the requirements for my bachelor's de
 *   **Live Visualization**: Get a real-time, interactive tree or graph of your React component structure.
 *   **Component Details**: Inspect individual components to see their props and state. (Coming soon!)
 *   **Easy to Use**: Simply open the developer tools and navigate to the "React Map" tab.
-*   **Lightweight**: Designed to have minimal impact on your application's performance.
 
 ## How It Works
 
