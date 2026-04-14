@@ -42,10 +42,6 @@ function App() {
     };
   }, []);
 
-  /**
-   * Work In-Progress
-   * @see https://github.com/AchmadAkif/react-map/issues/15
-   */
   if (typeof currentFiberTree === "object" && currentFiberTree !== null) {
     return <MainContainer data={currentFiberTree} />;
   }

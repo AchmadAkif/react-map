@@ -18,12 +18,28 @@ import type { RawNodeDatum } from "react-d3-tree";
 export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
   if (!node) return null;
 
+  // Skip Root and Mode nodes, but traverse their children
+  if (node.tag === 3 || node.tag === 8) {
+    let child = node.child;
+    while (child) {
+      const treeChild = traverseFiber(child);
+      if (treeChild) {
+        return treeChild; // Return the first valid child
+      }
+      child = child.sibling;
+    }
+    return null;
+  }
+
   /**
    * TODO: Get component state and props
    * @see https://github.com/AchmadAkif/react-map/issues/20
    */
   const treeData: RawNodeDatum = {
     name: utils.getComponentName(node),
+    attributes: {
+      metadataLabel: utils.getMetadataLabel(node.tag),
+    },
     children: [],
     state: null,
     props: null,
