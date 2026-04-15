@@ -26,7 +26,6 @@ function App() {
         message.source === "react-map-backend" &&
         typeof message.payload !== "string"
       ) {
-        console.log(message);
         const fiberTree = message.payload;
         setCurrentFiberTree(fiberTree);
       }
@@ -43,10 +42,6 @@ function App() {
     };
   }, []);
 
-  /**
-   * Work In-Progress
-   * @see https://github.com/AchmadAkif/react-map/issues/15
-   */
   if (typeof currentFiberTree === "object" && currentFiberTree !== null) {
     return <MainContainer data={currentFiberTree} />;
   }
