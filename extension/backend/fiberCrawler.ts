@@ -48,14 +48,15 @@ export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
 
   let child = node.child;
   while (child) {
+    // Skip raw text nodes inside HTML
+    if (node.tag === 5 && child.tag === 6) {
+      child = child.sibling;
+      continue;
+    }
     const treeChild = traverseFiber(child);
     if (treeChild) {
       const children = treeData.children ?? (treeData.children = []);
-
-      // Skip raw text nodes inside HTML
-      if (child.tag !== 6) {
-        children.push(treeChild);
-      }
+      children.push(treeChild);
     }
     child = child.sibling;
   }

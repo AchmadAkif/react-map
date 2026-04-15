@@ -80,6 +80,8 @@ export const getComponentName = (node: Fiber): string => {
     node.type?.render?.name ||
     node.elementType?.name ||
     node.elementType?.render?.name ||
+    (typeof node.type === "string" ? node.type : undefined) ||
+    (typeof node.elementType === "string" ? node.elementType : undefined) ||
     "Anonymous";
 
   return component;
