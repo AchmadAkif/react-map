@@ -25,8 +25,10 @@ Tag,Variable Name,Description,Crawler Action
 | **10** | `ContextProvider`   | The `.Provider` of a React Context.           | **Process & Render**        |
 | **11** | `ForwardRef`        | Components using `React.forwardRef()`.        | **Process & Render**        |
 | **13** | `SuspenseComponent` | A `<Suspense>` boundary.                      | **Process & Render**        |
-| **15** | `MemoComponent`     | Components using `React.memo()`.              | **Process & Render**        |
+| **14** | `MemoComponent`     | Components using `React.memo()`.              | **Process & Render**        |
 | **22** | `Offscreen`         | Hidden or Suspended components.               | **Identify as Inactive**    |
+
+Full version: https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactWorkTags.js/
 
 ## Implementation Usage
 
