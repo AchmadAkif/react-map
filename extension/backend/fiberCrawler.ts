@@ -38,7 +38,7 @@ export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
   const treeData: RawNodeDatum = {
     name: utils.getComponentName(node),
     attributes: {
-      metadataLabel: utils.getMetadataLabel(node.tag),
+      nodeType: utils.getMetadataLabel(node.tag),
     },
     children: [],
     state: null,
