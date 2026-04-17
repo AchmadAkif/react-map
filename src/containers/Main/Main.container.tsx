@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { HierarchyTree, Sidebar } from "../../components";
 
-import type { RawNodeDatum } from "react-d3-tree";
+import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 import type { TreeOrientation, NodeSpacing } from "../../types";
 
 const Main = ({ data }: { data: RawNodeDatum }) => {
@@ -20,6 +20,10 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
     setNodeSpacing((prev) => ({ ...prev, [axis]: value }));
   };
 
+  const handeOnNodeHover = (node: TreeNodeDatum) => {
+    console.log(node);
+  };
+
   return (
     <div className="flex">
       <Sidebar
@@ -32,6 +36,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
         data={data}
         treeOrientation={treeOrientation}
         nodeSize={nodeSpacing}
+        handleOnNodeHover={handeOnNodeHover}
       />
     </div>
   );

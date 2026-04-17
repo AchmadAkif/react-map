@@ -1,4 +1,5 @@
 import { Select, Slider, TextField } from "../RadixUI";
+import { PropsPanel } from "../PropsPanel";
 
 import type { SidebarProps } from "./Sidebar.types";
 
@@ -39,6 +40,7 @@ const Sidebar = ({
         value={nodeSpacing.y}
         onValueChange={(value) => onNodeSpacingChange(Number(value), "y")}
       />
+      <PropsPanel />
     </div>
   );
 };

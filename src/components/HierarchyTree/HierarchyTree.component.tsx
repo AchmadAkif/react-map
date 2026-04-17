@@ -6,11 +6,19 @@ export default function HierarchyTree({
   data,
   treeOrientation,
   nodeSize,
+  handleOnNodeHover,
 }: HierarchyTreeProps) {
   return (
     // `<Tree />` will fill width/height of its container; in this case `#treeWrapper`.
     <div id="treeWrapper" className="h-screen w-full">
-      <Tree data={data} orientation={treeOrientation} nodeSize={nodeSize} />
+      <Tree
+        data={data}
+        orientation={treeOrientation}
+        nodeSize={nodeSize}
+        onNodeMouseOver={(node) => {
+          if (handleOnNodeHover) handleOnNodeHover(node.data);
+        }}
+      />
     </div>
   );
 }

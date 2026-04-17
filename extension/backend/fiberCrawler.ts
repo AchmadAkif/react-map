@@ -42,7 +42,7 @@ export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
     },
     children: [],
     state: null,
-    props: null,
+    props: utils.getComponentProps(node),
     isDOM: null,
   };
 

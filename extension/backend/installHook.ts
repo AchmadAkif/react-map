@@ -55,6 +55,7 @@ const debounce = (callback: (...args: any[]) => void, wait: number) => {
       try {
         const currentRenderedNode = root.current;
         const serializedNode = traverseFiber(currentRenderedNode);
+        console.log(currentRenderedNode);
         // Send data to content-script
         window.postMessage(
           {

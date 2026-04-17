@@ -96,11 +96,29 @@ export const getComponentState = (node: Fiber): object | null => {
 };
 
 export const getComponentProps = (node: Fiber): object | null => {
-  if (node.memoizedProps) {
-    return node.memoizedProps;
+  const props: Record<string, unknown> = {};
+
+  if (!node.memoizedProps) {
+    return null;
   }
 
-  return null;
+  for (const key in node.memoizedProps) {
+    const value = node.memoizedProps[key];
+
+    if (typeof value === "function") {
+      props[key] = "f()";
+    } else if (value === null) {
+      props[key] = "null";
+    } else if (value === undefined) {
+      props[key] = "undefined";
+    } else if (typeof value === "object") {
+      props[key] = "{...}";
+    } else {
+      props[key] = value;
+    }
+  }
+
+  return props;
 };
 
 export const getIsComponentDOM = (node: Fiber): boolean | null => {
