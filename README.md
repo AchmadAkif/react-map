@@ -6,12 +6,6 @@ This project is being developed to fulfill the requirements for my bachelor's de
 
 ---
 
-## Features
-
-*   **Live Visualization**: Get a real-time, interactive tree or graph of your React component structure.
-*   **Component Details**: Inspect individual components to see their props and state. (Coming soon!)
-*   **Easy to Use**: Simply open the developer tools and navigate to the "React Map" tab.
-
 ## How It Works
 
 `react-map` works by tapping into the React Devtools global hook (`__REACT_DEVTOOLS_GLOBAL_HOOK__`). By patching this hook, it can intercept information about your React application's component structure, including the fiber tree, and use it to render a visual map. This allows you to "see" your app's architecture at a glance.
