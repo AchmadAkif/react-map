@@ -7,6 +7,7 @@ import type { TreeOrientation, NodeSpacing } from "../../types";
 const Main = ({ data }: { data: RawNodeDatum }) => {
   const [treeOrientation, setTreeOrientation] =
     useState<TreeOrientation>("vertical");
+  const [hoveredNode, setHoveredNode] = useState<TreeNodeDatum | null>(null);
   const [nodeSpacing, setNodeSpacing] = useState<NodeSpacing>({
     x: 200,
     y: 200,
@@ -21,7 +22,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
   };
 
   const handeOnNodeHover = (node: TreeNodeDatum) => {
-    console.log(node);
+    setHoveredNode(node);
   };
 
   return (
@@ -31,6 +32,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
         onSetOrientation={handleSetOrientation}
         nodeSpacing={nodeSpacing}
         onNodeSpacingChange={handleNodeSpacingChange}
+        hoveredNode={hoveredNode}
       />
       <HierarchyTree
         data={data}

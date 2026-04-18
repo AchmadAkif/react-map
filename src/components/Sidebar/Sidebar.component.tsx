@@ -1,3 +1,4 @@
+import { Separator } from "@radix-ui/themes";
 import { Select, Slider, TextField } from "../RadixUI";
 import { PropsPanel } from "../PropsPanel";
 
@@ -8,10 +9,12 @@ const Sidebar = ({
   onSetOrientation,
   nodeSpacing,
   onNodeSpacingChange,
+  hoveredNode,
 }: SidebarProps) => {
   return (
     <div className="px-2 py-3 shadow-md">
       <h2 className="text-lg font-bold">React-Map</h2>
+      <Separator my="3" size="4" />
       <p>Tree Orientation</p>
       <Select
         value={treeOrientation}
@@ -40,7 +43,8 @@ const Sidebar = ({
         value={nodeSpacing.y}
         onValueChange={(value) => onNodeSpacingChange(Number(value), "y")}
       />
-      <PropsPanel />
+      <Separator my="3" size="4" />
+      <PropsPanel hoveredNode={hoveredNode} />
     </div>
   );
 };
