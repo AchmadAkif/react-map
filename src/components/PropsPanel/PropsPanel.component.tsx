@@ -1,14 +1,7 @@
 import { Text, DataList } from "@radix-ui/themes";
+import { renderValue } from "../../utils";
 
 import type { PropsPanelProps } from "./PropsPanel.types";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderValue = (value: any) => {
-  if (typeof value === "string") {
-    return `"${value}"`;
-  }
-  return JSON.stringify(value);
-};
 
 const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
   const props = hoveredNode?.props ? hoveredNode.props : null;
