@@ -58,7 +58,7 @@ const debounce = (callback: (...args: any[]) => void, wait: number) => {
         // Send data to content-script
         window.postMessage(
           {
-            source: "react-map-extension",
+            source: "react-map-installHook",
             payload: serializedNode,
           },
           window.location.origin,

@@ -2,7 +2,7 @@
  * List of allowed message sources that are permitted to communicate with the background script.
  * @type {string[]}
  */
-const allowedMsgSources = ["react-map-extension"];
+const allowedMsgSources = ["react-map-installHook"];
 
 function injectScript(file: string, node: string) {
   const targetElement = document.getElementsByTagName(node)[0];
@@ -48,6 +48,9 @@ function injectWhenNodeAvailable(file: string, node: string) {
 // Listen message from user app(webpage context) *installHook.ts*
 window.addEventListener("message", (e) => {
   const message = e.data;
+  if (message.source === "react-map-installHook") {
+    console.log("msg from installHook received by content-script", e.data);
+  }
   /**
    * Only accept messages that we know are ours. Note that this is not foolproof
    * and the page can easily spoof messages if it wants to.
@@ -61,7 +64,10 @@ window.addEventListener("message", (e) => {
   }
 
   // Pass message to background
-  chrome.runtime.sendMessage(message);
+  chrome.runtime.sendMessage({
+    ...message,
+    source: "react-map-content-script",
+  });
 });
 
 injectWhenNodeAvailable(chrome.runtime.getURL("/installHook.js"), "body");
