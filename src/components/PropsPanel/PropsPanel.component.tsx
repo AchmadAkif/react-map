@@ -9,7 +9,7 @@ const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
     <div className="flex flex-col">
       <Text className="font-bold">Props</Text>
       {props && Object.keys(props).length > 0 ? (
-        <DataList.Root size={"1"}>
+        <DataList.Root size="1">
           {Object.entries(props).map(([key, value]) => (
             <DataList.Item key={key}>
               <DataList.Label>{key}</DataList.Label>
@@ -18,7 +18,7 @@ const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
           ))}
         </DataList.Root>
       ) : (
-        <Text size={"1"}>None</Text>
+        <Text size="1">None</Text>
       )}
     </div>
   );

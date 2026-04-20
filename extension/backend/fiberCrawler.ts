@@ -41,9 +41,8 @@ export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
       nodeType: utils.getMetadataLabel(node.tag),
     },
     children: [],
-    state: null,
+    state: utils.getComponentHooks(node),
     props: utils.getComponentProps(node),
-    isDOM: null,
   };
 
   let child = node.child;

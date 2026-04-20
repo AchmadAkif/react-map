@@ -1,4 +1,5 @@
 import type { Fiber } from "./reactInternal.types";
+import type { componentHook } from "../types";
 
 export const getMetadataLabel = (tag: number): string => {
   switch (tag) {
@@ -87,12 +88,40 @@ export const getComponentName = (node: Fiber): string => {
   return component;
 };
 
-export const getComponentState = (node: Fiber): object | null => {
-  if (node.memoizedState) {
-    return node.memoizedState;
+export const getComponentHooks = (node: Fiber): componentHook[] | null => {
+  const hooks = [];
+  let current = node.memoizedState;
+
+  if (!current) {
+    return null;
   }
 
-  return null;
+  while (
+    current &&
+    Object.prototype.hasOwnProperty.call(current, "memoizedState")
+  ) {
+    const value = current.memoizedState;
+
+    let type = "useState";
+    if (value && typeof value === "object" && "current" in value)
+      type = "useRef";
+    if (
+      value &&
+      Object.prototype.hasOwnProperty.call(value, "tag") &&
+      Object.prototype.hasOwnProperty.call(value, "create")
+    )
+      type = "useEffect";
+
+    hooks.push({
+      index: hooks.length,
+      type: type,
+      value: value,
+    });
+
+    current = current.next;
+  }
+
+  return hooks;
 };
 
 export const getComponentProps = (node: Fiber): object | null => {
