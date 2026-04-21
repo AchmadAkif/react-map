@@ -33,7 +33,7 @@ function App() {
         const fiberTree = message.payload;
         if (fiberTree) {
           setCurrentFiberTree(fiberTree);
-          // setStatus("success");
+          setStatus("success");
         } else {
           setStatus("error");
         }
