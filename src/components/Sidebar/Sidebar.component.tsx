@@ -1,7 +1,6 @@
 import { Separator } from "@radix-ui/themes";
 import { Select, Slider, TextField } from "../RadixUI";
-import { PropsPanel } from "../PropsPanel";
-import { StatePanel } from "../StatePanel";
+import { ComponentDetails } from "../ComponentDetails";
 
 import type { SidebarProps } from "./Sidebar.types";
 
@@ -45,8 +44,7 @@ const Sidebar = ({
         onValueChange={(value) => onNodeSpacingChange(Number(value), "y")}
       />
       <Separator my="3" size="4" />
-      <StatePanel hoveredNode={hoveredNode} />
-      <PropsPanel hoveredNode={hoveredNode} />
+      <ComponentDetails hoveredNode={hoveredNode} />
     </div>
   );
 };

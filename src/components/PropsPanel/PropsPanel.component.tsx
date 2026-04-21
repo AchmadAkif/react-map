@@ -12,7 +12,9 @@ const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
         <DataList.Root size="1">
           {Object.entries(props).map(([key, value]) => (
             <DataList.Item key={key}>
-              <DataList.Label>{key}</DataList.Label>
+              <DataList.Label minWidth="80px" maxWidth="100px">
+                {key}
+              </DataList.Label>
               <DataList.Value>{renderValue(value)}</DataList.Value>
             </DataList.Item>
           ))}

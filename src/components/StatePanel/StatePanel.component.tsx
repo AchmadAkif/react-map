@@ -14,7 +14,10 @@ const StatePanel = ({ hoveredNode }: StatePanelProps) => {
         <DataList.Root size="1">
           {states.map((state) => (
             <DataList.Item key={state.index}>
-              <DataList.Label>{`State ${state.index}`}</DataList.Label>
+              <DataList.Label
+                minWidth="80px"
+                maxWidth="100px"
+              >{`State ${state.index}`}</DataList.Label>
               <DataList.Value>{renderValue(state.value)}</DataList.Value>
             </DataList.Item>
           ))}
