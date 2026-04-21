@@ -35,7 +35,6 @@ const handleConnection = (port: chrome.runtime.Port) => {
   const portDisconnectListener = () => {
     port.onMessage.removeListener(portMessageListener);
     delete connections[tabId];
-    delete cache[tabId];
     console.log(`tab ${tabId} disconnected`);
   };
 

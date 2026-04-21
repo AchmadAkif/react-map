@@ -160,3 +160,18 @@ export const getIsComponentDOM = (node: Fiber): boolean | null => {
 
   return null;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const debounce = (callback: (...args: any[]) => void, wait: number) => {
+  let timeoutId: number | null = null;
+
+  return (...args: unknown[]) => {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+
+    timeoutId = window.setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
+};
