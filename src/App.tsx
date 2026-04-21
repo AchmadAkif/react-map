@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Spinner } from "@radix-ui/themes";
-import { MainContainer } from "./containers";
+import { MainContainer, ErrorPage } from "./containers";
 
 import type { Message } from "../extension/backend/types";
 import type { RawNodeDatum } from "react-d3-tree";
@@ -33,7 +33,7 @@ function App() {
         const fiberTree = message.payload;
         if (fiberTree) {
           setCurrentFiberTree(fiberTree);
-          setStatus("success");
+          // setStatus("success");
         } else {
           setStatus("error");
         }
@@ -60,19 +60,7 @@ function App() {
       </div>
     );
   } else if (status === "error") {
-    /**
-     * TODO
-     * @see https://github.com/AchmadAkif/react-map/issues/16
-     */
-    return (
-      <>
-        <h2>
-          Cannot render react component tree. Triggering a setState() usually
-          fixes this.
-        </h2>
-        <p>Note: React-Sight works best on local projects with React v16+</p>
-      </>
-    );
+    return <ErrorPage />;
   }
 }
 
