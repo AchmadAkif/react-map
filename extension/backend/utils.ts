@@ -88,6 +88,56 @@ export const getComponentName = (node: Fiber): string => {
   return component;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const handleHookValue = (val: any, hookType?: string): any => {
+  if (val === null || val === undefined) return val;
+
+  if (hookType === "State") {
+    if (val instanceof Node) {
+      const tagName = (val as HTMLElement).tagName?.toLowerCase() || "node";
+      const id = (val as HTMLElement).id ? `#${(val as HTMLElement).id}` : "";
+      return `<${tagName}${id}>`;
+    }
+
+    if (typeof val === "function") {
+      return "ƒ()";
+    }
+
+    if (typeof val === "object") {
+      // If it's a React Element (circular and complex)
+      if (val.$$typeof) return "[React Element]";
+
+      try {
+        // If it's a simple object/array, try a shallow clone
+        // This is a "smoke test" for the bridge
+        if (Array.isArray(val)) {
+          return val.map((item) => handleHookValue(item, hookType));
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const sanitizedObj: any = {};
+        for (const key in val) {
+          // Only grab own properties to avoid prototype pollution
+          if (Object.prototype.hasOwnProperty.call(val, key)) {
+            sanitizedObj[key] = handleHookValue(val[key], hookType);
+          }
+        }
+        return sanitizedObj;
+      } catch (e) {
+        console.error(e);
+        return "[Complex/Circular Object]";
+      }
+    }
+
+    return val;
+  }
+
+  if (hookType === "Effect") return "() => {}";
+  if (hookType === "Ref") return "() => {}";
+
+  if (hookType === "Memo") return hookType;
+};
+
 /**
  * FIXME: The getComponentHooks function in utils.ts currently identifies hooks like useRef and useEffect but replaces
  * their actual values with hardcoded strings (e.g., "ref", "effect"). This is a temporary workaround to prevent a
@@ -134,12 +184,14 @@ export const getComponentHooks = (node: Fiber): componentHook[] | null => {
     hooks.push({
       index: hooks.length,
       type: type,
-      value: type,
+      // FIX THIS GARBAGE
+      value: handleHookValue(currentMemoizedState.memoizedState, type),
     });
 
     currentMemoizedState = currentMemoizedState.next;
   }
 
+  console.log(getComponentName(node), hooks);
   return hooks;
 };
 
