@@ -88,42 +88,68 @@ export const getComponentName = (node: Fiber): string => {
   return component;
 };
 
+/**
+ * FIXME: The getComponentHooks function in utils.ts currently identifies hooks like useRef and useEffect but replaces
+ * their actual values with hardcoded strings (e.g., "ref", "effect"). This is a temporary workaround to prevent a
+ * DataCloneError when sending component data from the background script to the DevTools panel.
+ * @see https://github.com/AchmadAkif/react-map/issues/28
+ */
 export const getComponentHooks = (node: Fiber): componentHook[] | null => {
   const hooks = [];
-  let current = node.memoizedState;
+  let currentMemoizedState = node.memoizedState;
 
-  if (!current) {
+  if (!currentMemoizedState) {
     return null;
   }
 
-  while (
-    current &&
-    Object.prototype.hasOwnProperty.call(current, "memoizedState")
-  ) {
-    const value = current.memoizedState;
-
-    let type = "useState";
-    if (value && typeof value === "object" && "current" in value)
-      type = "useRef";
+  let type = "State";
+  while (currentMemoizedState) {
     if (
-      value &&
-      Object.prototype.hasOwnProperty.call(value, "tag") &&
-      Object.prototype.hasOwnProperty.call(value, "create")
-    )
-      type = "useEffect";
+      currentMemoizedState.queue &&
+      typeof currentMemoizedState.queue.dispatch === "function"
+    ) {
+      type = "State";
+    } else if (
+      currentMemoizedState.memoizedState &&
+      typeof currentMemoizedState.memoizedState === "object" &&
+      ["tag", "create", "destroy"].every(
+        (key) => key in currentMemoizedState.memoizedState,
+      )
+    ) {
+      type = "Effect";
+    } else if (
+      currentMemoizedState.memoizedState &&
+      typeof currentMemoizedState.memoizedState === "object" &&
+      Object.keys(currentMemoizedState.memoizedState).length === 1 &&
+      Object.hasOwn(currentMemoizedState.memoizedState, "current")
+    ) {
+      type = "Ref";
+    } else if (
+      Array.isArray(currentMemoizedState.memoizedState) &&
+      currentMemoizedState.memoizedState.length > 0
+    ) {
+      type = "Memo";
+    }
 
     hooks.push({
       index: hooks.length,
       type: type,
-      value: value,
+      value: type,
     });
 
-    current = current.next;
+    currentMemoizedState = currentMemoizedState.next;
   }
 
   return hooks;
 };
 
+/**
+ * FIXME: This function is not perfect. It returns a hardcoded value for functions, null, undefined, and objects.
+ * This is to prevent a data clone error when sending the data to the DevTools panel.
+ * A better solution would be to serialize the props in a way that can be safely cloned.
+ *
+ * @see https://github.com/AchmadAkif/react-map/issues/27
+ */
 export const getComponentProps = (node: Fiber): object | null => {
   const props: Record<string, unknown> = {};
 
