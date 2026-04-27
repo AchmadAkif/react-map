@@ -90,8 +90,7 @@ export const getComponentName = (node: Fiber): string => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleHookValue = (val: any, hookType?: string): any => {
-  if (val === undefined) return "undefined";
-  if (val === null) return val;
+  if (val === null || val === undefined) return val;
 
   if (hookType === "State") {
     if (val instanceof Node) {
