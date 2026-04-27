@@ -26,19 +26,19 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
   };
 
   return (
-    <div className="flex">
+    <div className="flex h-screen w-full overflow-hidden">
+      <HierarchyTree
+        data={data}
+        treeOrientation={treeOrientation}
+        nodeSize={nodeSpacing}
+        handleOnNodeHover={handeOnNodeHover}
+      />
       <Sidebar
         treeOrientation={treeOrientation}
         onSetOrientation={handleSetOrientation}
         nodeSpacing={nodeSpacing}
         onNodeSpacingChange={handleNodeSpacingChange}
         hoveredNode={hoveredNode}
-      />
-      <HierarchyTree
-        data={data}
-        treeOrientation={treeOrientation}
-        nodeSize={nodeSpacing}
-        handleOnNodeHover={handeOnNodeHover}
       />
     </div>
   );

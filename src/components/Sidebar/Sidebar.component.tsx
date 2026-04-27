@@ -12,7 +12,7 @@ const Sidebar = ({
   hoveredNode,
 }: SidebarProps) => {
   return (
-    <div className="px-2 py-3 shadow-md">
+    <div className="min-w-md h-full overflow-y-auto px-2 py-3 shadow-md">
       <h2 className="text-lg font-bold">React-Map</h2>
       <Separator my="3" size="4" />
       <p>Tree Orientation</p>
