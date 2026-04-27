@@ -90,7 +90,8 @@ export const getComponentName = (node: Fiber): string => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const handleHookValue = (val: any, hookType?: string): any => {
-  if (val === null || val === undefined) return val;
+  if (val === undefined) return "undefined";
+  if (val === null) return val;
 
   if (hookType === "State") {
     if (val instanceof Node) {
@@ -184,14 +185,12 @@ export const getComponentHooks = (node: Fiber): componentHook[] | null => {
     hooks.push({
       index: hooks.length,
       type: type,
-      // FIX THIS GARBAGE
       value: handleHookValue(currentMemoizedState.memoizedState, type),
     });
 
     currentMemoizedState = currentMemoizedState.next;
   }
 
-  console.log(getComponentName(node), hooks);
   return hooks;
 };
 
