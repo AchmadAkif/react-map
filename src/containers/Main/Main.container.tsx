@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { HierarchyTree, Sidebar } from "../../components";
+import { filterTreeData } from "../../utils";
 
 import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
-import type { TreeOrientation, NodeSpacing } from "../../types";
+import type { TreeFilters, TreeOrientation, NodeSpacing } from "../../types";
 
 const Main = ({ data }: { data: RawNodeDatum }) => {
   const [treeOrientation, setTreeOrientation] =
@@ -12,6 +13,16 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
     x: 200,
     y: 200,
   });
+  const [treeFilters, setTreeFilters] = useState<TreeFilters>({
+    hideRouterComponent: false,
+    hideDomComponent: false,
+    hideReduxComponent: false,
+  });
+
+  const filteredTreeData = useMemo(
+    () => filterTreeData(data, treeFilters),
+    [data, treeFilters],
+  );
 
   const handleSetOrientation = (orientation: TreeOrientation) => {
     setTreeOrientation(orientation);
@@ -21,6 +32,16 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
     setNodeSpacing((prev) => ({ ...prev, [axis]: value }));
   };
 
+  const handleFilterChange = (
+    filterName: keyof TreeFilters,
+    value: boolean,
+  ) => {
+    setTreeFilters((prev) => ({
+      ...prev,
+      [filterName]: value,
+    }));
+  };
+
   const handeOnNodeHover = (node: TreeNodeDatum) => {
     setHoveredNode(node);
   };
@@ -28,7 +49,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <HierarchyTree
-        data={data}
+        data={filteredTreeData}
         treeOrientation={treeOrientation}
         nodeSize={nodeSpacing}
         handleOnNodeHover={handeOnNodeHover}
@@ -39,6 +60,8 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
         nodeSpacing={nodeSpacing}
         onNodeSpacingChange={handleNodeSpacingChange}
         hoveredNode={hoveredNode}
+        treeFilters={treeFilters}
+        onFilterChange={handleFilterChange}
       />
     </div>
   );

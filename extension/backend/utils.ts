@@ -138,12 +138,6 @@ const handleHookValue = (val: any, hookType?: string): any => {
   if (hookType === "Memo") return hookType;
 };
 
-/**
- * FIXME: The getComponentHooks function in utils.ts currently identifies hooks like useRef and useEffect but replaces
- * their actual values with hardcoded strings (e.g., "ref", "effect"). This is a temporary workaround to prevent a
- * DataCloneError when sending component data from the background script to the DevTools panel.
- * @see https://github.com/AchmadAkif/react-map/issues/28
- */
 export const getComponentHooks = (node: Fiber): componentHook[] | null => {
   const hooks = [];
   let currentMemoizedState = node.memoizedState;

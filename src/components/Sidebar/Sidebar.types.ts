@@ -1,5 +1,5 @@
 import type { TreeNodeDatum } from "react-d3-tree";
-import type { TreeOrientation, NodeSpacing } from "../../types";
+import type { TreeFilters, TreeOrientation, NodeSpacing } from "../../types";
 
 export interface SidebarProps {
   treeOrientation: TreeOrientation;
@@ -7,4 +7,6 @@ export interface SidebarProps {
   nodeSpacing: NodeSpacing;
   onNodeSpacingChange: (value: number, axis: "x" | "y") => void;
   hoveredNode?: TreeNodeDatum | null;
+  treeFilters: TreeFilters;
+  onFilterChange: (filterName: keyof TreeFilters, value: boolean) => void;
 }
