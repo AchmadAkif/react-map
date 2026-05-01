@@ -1,49 +1,55 @@
+import { CheckboxGroup } from "@radix-ui/themes";
+
 import type { FilterPreferenceProps } from "./FilterPreference.types";
 
 const FilterPreference = ({
   treeFilters,
   handleFilterChange,
 }: FilterPreferenceProps) => {
+  const selectedValues = [
+    treeFilters.hideRouterComponent ? "hideRouterComponent" : null,
+    treeFilters.hideDomComponent ? "hideDomComponent" : null,
+    treeFilters.hideReduxComponent ? "hideReduxComponent" : null,
+  ].filter((value): value is string => value !== null);
+
   return (
-    <div>
-      {" "}
-      <label className="flex items-center gap-2 py-1 text-sm">
-        <input
-          type="checkbox"
-          checked={treeFilters.hideRouterComponent}
-          onChange={(event) =>
-            handleFilterChange(
-              "hideRouterComponent",
-              event.currentTarget.checked,
-            )
-          }
-        />
+    <CheckboxGroup.Root
+      value={selectedValues}
+      onValueChange={(values) => {
+        const valueSet = new Set(values);
+        handleFilterChange(
+          "hideRouterComponent",
+          valueSet.has("hideRouterComponent"),
+        );
+        handleFilterChange(
+          "hideDomComponent",
+          valueSet.has("hideDomComponent"),
+        );
+        handleFilterChange(
+          "hideReduxComponent",
+          valueSet.has("hideReduxComponent"),
+        );
+      }}
+    >
+      <CheckboxGroup.Item
+        value="hideRouterComponent"
+        className="flex items-center gap-2 py-1 text-sm"
+      >
         Hide Router Component
-      </label>
-      <label className="flex items-center gap-2 py-1 text-sm">
-        <input
-          type="checkbox"
-          checked={treeFilters.hideDomComponent}
-          onChange={(event) =>
-            handleFilterChange("hideDomComponent", event.currentTarget.checked)
-          }
-        />
+      </CheckboxGroup.Item>
+      <CheckboxGroup.Item
+        value="hideDomComponent"
+        className="flex items-center gap-2 py-1 text-sm"
+      >
         Hide DOM Component
-      </label>
-      <label className="flex items-center gap-2 py-1 text-sm">
-        <input
-          type="checkbox"
-          checked={treeFilters.hideReduxComponent}
-          onChange={(event) =>
-            handleFilterChange(
-              "hideReduxComponent",
-              event.currentTarget.checked,
-            )
-          }
-        />
+      </CheckboxGroup.Item>
+      <CheckboxGroup.Item
+        value="hideReduxComponent"
+        className="flex items-center gap-2 py-1 text-sm"
+      >
         Hide Redux Component
-      </label>
-    </div>
+      </CheckboxGroup.Item>
+    </CheckboxGroup.Root>
   );
 };
 
