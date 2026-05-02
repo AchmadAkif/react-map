@@ -1,3 +1,4 @@
+import { useRef, useState, useLayoutEffect } from "react";
 import Tree from "react-d3-tree";
 
 import type { HierarchyTreeProps } from "./HierarchyTree.types";
@@ -8,6 +9,15 @@ export default function HierarchyTree({
   nodeSize,
   handleOnNodeHover,
 }: HierarchyTreeProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
+
+  useLayoutEffect(() => {
+    if (containerRef.current) {
+      setContainerRect(containerRef.current.getBoundingClientRect());
+    }
+  }, []);
+
   if (!data) {
     return (
       <div
@@ -23,7 +33,7 @@ export default function HierarchyTree({
 
   return (
     // `<Tree />` will fill width/height of its container; in this case `#treeWrapper`.
-    <div id="treeWrapper" className="h-screen w-full">
+    <div ref={containerRef} id="treeWrapper" className="h-screen w-full">
       <Tree
         data={data}
         orientation={treeOrientation}
@@ -31,6 +41,14 @@ export default function HierarchyTree({
         onNodeMouseOver={(node) => {
           if (handleOnNodeHover) handleOnNodeHover(node.data);
         }}
+        dimensions={
+          containerRect
+            ? {
+                height: containerRect?.height,
+                width: containerRect?.width,
+              }
+            : undefined
+        }
       />
     </div>
   );
