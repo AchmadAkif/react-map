@@ -1,5 +1,13 @@
 import type { OrientationPreferenceProps } from "./OrientationPreference.types";
-import { Select } from "../RadixUI";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const OrientationPreference = ({
   treeOrientation,
@@ -7,12 +15,21 @@ const OrientationPreference = ({
 }: OrientationPreferenceProps) => {
   return (
     <div>
-      <p>TreeOrientation</p>
       <Select
-        value={treeOrientation}
+        defaultValue={treeOrientation}
         onValueChange={handleSetOrientation}
-        options={["Vertical", "Horizontal"]}
-      />
+      >
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectGroup>
+            <SelectLabel>Tree Orientation</SelectLabel>
+            <SelectItem value="vertical">Vertical</SelectItem>
+            <SelectItem value="horizontal">Horizontal</SelectItem>
+          </SelectGroup>
+        </SelectContent>
+      </Select>
     </div>
   );
 };

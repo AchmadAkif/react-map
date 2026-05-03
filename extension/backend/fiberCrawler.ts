@@ -31,10 +31,6 @@ export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
     return null;
   }
 
-  /**
-   * TODO: Get component state and props
-   * @see https://github.com/AchmadAkif/react-map/issues/20
-   */
   const treeData: RawNodeDatum = {
     name: utils.getComponentName(node),
     attributes: {

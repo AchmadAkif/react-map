@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Spinner } from "@radix-ui/themes";
 import { MainContainer, ErrorPage } from "./containers";
+import { Spinner } from "./components/ui/spinner";
 
 import type { Message } from "../extension/backend/types";
 import type { RawNodeDatum } from "react-d3-tree";
@@ -56,7 +56,7 @@ function App() {
   } else if (status === "loading") {
     return (
       <div className="h-screen flex items-center justify-center">
-        <Spinner size="3" />
+        <Spinner />
       </div>
     );
   } else if (status === "error") {

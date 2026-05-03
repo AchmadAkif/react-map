@@ -1,4 +1,5 @@
-import { Slider, TextField } from "../RadixUI";
+import { Input } from "../ui/input";
+import { Slider } from "../ui/slider";
 
 import type { SpacingPreferenceProps } from "./SpacingPreference.types";
 
@@ -10,25 +11,29 @@ const SpacingPreference = ({
     <>
       <p>Horizontal Spacing</p>
       <Slider
+        max={500}
         value={[nodeSpacing.x]}
-        size="1"
         onValueChange={(value) => handleNodeSpacingChange(value[0], "x")}
       />
-      <TextField
+      <Input
         type="number"
         value={nodeSpacing.x}
-        onValueChange={(value) => handleNodeSpacingChange(Number(value), "x")}
+        onChange={(event) =>
+          handleNodeSpacingChange(Number(event.target.value), "x")
+        }
       />
       <p>Vertical Spacing</p>
       <Slider
+        max={500}
         value={[nodeSpacing.y]}
-        size="1"
         onValueChange={(value) => handleNodeSpacingChange(value[0], "y")}
       />
-      <TextField
+      <Input
         type="number"
         value={nodeSpacing.y}
-        onValueChange={(value) => handleNodeSpacingChange(Number(value), "y")}
+        onChange={(event) =>
+          handleNodeSpacingChange(Number(event.target.value), "y")
+        }
       />
     </>
   );

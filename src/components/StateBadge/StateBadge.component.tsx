@@ -1,4 +1,4 @@
-import { Badge } from "@radix-ui/themes";
+import { Badge } from "../ui/badge";
 
 import type { StateBadgeProps } from "./StateBadge.types";
 

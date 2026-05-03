@@ -1,13 +1,11 @@
-import { Text } from "@radix-ui/themes";
-
 const Error = () => {
   return (
     <div className="h-screen flex flex-col item items-center justify-center">
-      <Text>
+      <p>
         Cannot render react component tree. Triggering a setState() usually
         fixes this and make sure React Devtools extension is installed.
-      </Text>
-      <Text>Note: React-Map works best on local projects with React v16+</Text>
+      </p>
+      <p>Note: React-Map works best on local projects with React v16+</p>
     </div>
   );
 };

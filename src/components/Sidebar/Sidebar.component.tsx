@@ -1,4 +1,4 @@
-import { Separator } from "@radix-ui/themes";
+import { Separator } from "../ui/separator";
 import { ComponentDetails } from "../ComponentDetails";
 import { DisplayPreferences } from "../DisplayPreferences";
 
@@ -16,7 +16,7 @@ const Sidebar = ({
   return (
     <div className="min-w-md h-full overflow-y-auto px-4 py-3 shadow-md">
       <h2 className="text-lg font-bold">React-Map</h2>
-      <Separator my="3" size="4" />
+      <Separator />
       <DisplayPreferences
         treeOrientation={treeOrientation}
         nodeSpacing={nodeSpacing}
@@ -25,7 +25,7 @@ const Sidebar = ({
         treeFilters={treeFilters}
         handleFilterChange={onFilterChange}
       />
-      <Separator my="3" size="4" />
+      <Separator />
       <ComponentDetails hoveredNode={hoveredNode} />
     </div>
   );

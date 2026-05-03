@@ -1,4 +1,3 @@
-import { Text, DataList } from "@radix-ui/themes";
 import { renderValue } from "../../utils";
 import StateBadge from "../StateBadge";
 
@@ -8,25 +7,25 @@ const StatePanel = ({ hoveredNode }: StatePanelProps) => {
   const hooks = hoveredNode?.state;
   return (
     <div className="flex flex-col">
-      <Text className="font-bold">States</Text>
+      <p className="font-bold">States</p>
       {hooks && hooks.length > 0 ? (
-        <DataList.Root size="1">
+        <dl className="w-full text-sm">
           {hooks
             .filter((state) => state.type === "State")
             .map((state) => (
-              <DataList.Item key={state.index}>
-                <DataList.Label minWidth="80px" maxWidth="100px">
+              <div key={state.index} className="flex">
+                <dt className="w-24 min-w-20 max-w-25 font-medium">
                   <div className="flex items-center gap-2">
                     <StateBadge index={state.index} />
                     {state.type}
                   </div>
-                </DataList.Label>
-                <DataList.Value>{renderValue(state.value)}</DataList.Value>
-              </DataList.Item>
+                </dt>
+                <dd>{renderValue(state.value)}</dd>
+              </div>
             ))}
-        </DataList.Root>
+        </dl>
       ) : (
-        <Text size="1">None</Text>
+        <p>None</p>
       )}
     </div>
   );
