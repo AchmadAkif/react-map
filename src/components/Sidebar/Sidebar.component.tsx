@@ -1,6 +1,7 @@
 import { Separator } from "../ui/separator";
 import { ComponentDetails } from "../ComponentDetails";
 import { DisplayPreferences } from "../DisplayPreferences";
+import { SearchBar } from "../SearchBar";
 
 import type { SidebarProps } from "./Sidebar.types";
 
@@ -15,8 +16,8 @@ const Sidebar = ({
 }: SidebarProps) => {
   return (
     <div className="min-w-md h-full overflow-y-auto px-4 py-3 shadow-md">
-      <h2 className="text-lg font-bold">React-Map</h2>
-      <Separator />
+      <SearchBar />
+      <Separator className="my-2" />
       <DisplayPreferences
         treeOrientation={treeOrientation}
         nodeSpacing={nodeSpacing}
@@ -25,7 +26,7 @@ const Sidebar = ({
         treeFilters={treeFilters}
         handleFilterChange={onFilterChange}
       />
-      <Separator />
+      <Separator className="my-2" />
       <ComponentDetails hoveredNode={hoveredNode} />
     </div>
   );

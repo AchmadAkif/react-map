@@ -9,7 +9,7 @@ const ComponentDetails = ({
   hoveredNode: TreeNodeDatum | null | undefined;
 }) => {
   return (
-    <div className="flex flex-col space-y-4">
+    <div className="flex flex-col">
       <StatePanel hoveredNode={hoveredNode} />
       <PropsPanel hoveredNode={hoveredNode} />
     </div>

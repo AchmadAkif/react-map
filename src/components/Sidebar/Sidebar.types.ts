@@ -1,7 +1,8 @@
-import type { TreeNodeDatum } from "react-d3-tree";
+import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 import type { TreeFilters, TreeOrientation, NodeSpacing } from "../../types";
 
 export interface SidebarProps {
+  data: RawNodeDatum | null;
   treeOrientation: TreeOrientation;
   onSetOrientation: (orientation: TreeOrientation) => void;
   nodeSpacing: NodeSpacing;

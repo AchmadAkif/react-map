@@ -55,6 +55,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
         handleOnNodeHover={handeOnNodeHover}
       />
       <Sidebar
+        data={filterTreeData}
         treeOrientation={treeOrientation}
         onSetOrientation={handleSetOrientation}
         nodeSpacing={nodeSpacing}

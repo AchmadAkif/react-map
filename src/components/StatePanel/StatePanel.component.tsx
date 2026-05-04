@@ -9,15 +9,15 @@ const StatePanel = ({ hoveredNode }: StatePanelProps) => {
     <div className="flex flex-col">
       <p className="font-bold">States</p>
       {hooks && hooks.length > 0 ? (
-        <dl className="w-full text-sm">
+        <dl className="w-full flex flex-col gap-1">
           {hooks
             .filter((state) => state.type === "State")
             .map((state) => (
               <div key={state.index} className="flex">
-                <dt className="w-24 min-w-20 max-w-25 font-medium">
+                <dt className="w-24 min-w-20 max-w-25">
                   <div className="flex items-center gap-2">
                     <StateBadge index={state.index} />
-                    {state.type}
+                    <p>{state.type}</p>
                   </div>
                 </dt>
                 <dd>{renderValue(state.value)}</dd>
