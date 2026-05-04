@@ -1,11 +1,22 @@
 import { useMemo, useState } from "react";
+import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
+
 import { HierarchyTree, Sidebar } from "../../components";
 import { filterTreeData } from "../../utils";
 
-import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
-import type { TreeFilters, TreeOrientation, NodeSpacing } from "../../types";
+import {
+  type TreeFilters,
+  type TreeOrientation,
+  type NodeSpacing,
+  type renderedNode,
+} from "../../types";
 
 const Main = ({ data }: { data: RawNodeDatum }) => {
+  const [searchValue, setSearchValue] = useState<string>("");
+  const [selectedValue, setSelectedValue] = useState<string>("");
+  const [renderedTreeData, setRenderedTreeData] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [treeOrientation, setTreeOrientation] =
     useState<TreeOrientation>("vertical");
   const [hoveredNode, setHoveredNode] = useState<TreeNodeDatum | null>(null);
@@ -42,8 +53,19 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
     }));
   };
 
-  const handeOnNodeHover = (node: TreeNodeDatum) => {
+  const handleOnNodeHover = (node: TreeNodeDatum) => {
     setHoveredNode(node);
+  };
+
+  const handleRenderedTreeData = (data: renderedNode[]) => {
+    const filterData = data.map((node) => {
+      return {
+        value: node.data.name,
+        label: node.data.name,
+      };
+    });
+
+    setRenderedTreeData(filterData);
   };
 
   return (
@@ -52,10 +74,11 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
         data={filteredTreeData}
         treeOrientation={treeOrientation}
         nodeSize={nodeSpacing}
-        handleOnNodeHover={handeOnNodeHover}
+        handleOnNodeHover={handleOnNodeHover}
+        treeFilters={treeFilters}
+        onRenderedTreeData={handleRenderedTreeData}
       />
       <Sidebar
-        data={filterTreeData}
         treeOrientation={treeOrientation}
         onSetOrientation={handleSetOrientation}
         nodeSpacing={nodeSpacing}
@@ -63,6 +86,11 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
         hoveredNode={hoveredNode}
         treeFilters={treeFilters}
         onFilterChange={handleFilterChange}
+        searchValue={searchValue}
+        onSearchValueChange={setSearchValue}
+        selectedValue={selectedValue}
+        onSelectedValueChange={setSelectedValue}
+        renderedTreeData={renderedTreeData}
       />
     </div>
   );

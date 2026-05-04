@@ -13,10 +13,21 @@ const Sidebar = ({
   hoveredNode,
   treeFilters,
   onFilterChange,
+  searchValue,
+  onSearchValueChange,
+  selectedValue,
+  onSelectedValueChange,
+  renderedTreeData,
 }: SidebarProps) => {
   return (
     <div className="min-w-md h-full overflow-y-auto px-4 py-3 shadow-md">
-      <SearchBar />
+      <SearchBar
+        items={renderedTreeData}
+        searchValue={searchValue}
+        onSearchValueChange={onSearchValueChange}
+        selectedValue={selectedValue}
+        onSelectedValueChange={onSelectedValueChange}
+      />
       <Separator className="my-2" />
       <DisplayPreferences
         treeOrientation={treeOrientation}

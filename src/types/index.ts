@@ -1,3 +1,6 @@
+import type { HierarchyPointNode } from "d3-hierarchy";
+import type { TreeNodeDatum } from "react-d3-tree";
+
 export type TreeOrientation = "vertical" | "horizontal";
 export type NodeSpacing = { x: number; y: number };
 export type TreeFilters = {
@@ -5,3 +8,4 @@ export type TreeFilters = {
   hideDomComponent: boolean;
   hideReduxComponent: boolean;
 };
+export type renderedNode = HierarchyPointNode<TreeNodeDatum>;
