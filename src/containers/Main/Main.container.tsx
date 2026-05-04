@@ -60,7 +60,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
   const handleRenderedTreeData = (data: renderedNode[]) => {
     const filterData = data.map((node) => {
       return {
-        value: node.data.name,
+        value: node.data.__rd3t.id,
         label: node.data.name,
       };
     });

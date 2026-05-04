@@ -75,7 +75,21 @@ export default function AutoComplete<T extends string>({
   return (
     <div className="flex items-center">
       <Popover open={open} onOpenChange={setOpen}>
-        <Command shouldFilter={true}>
+        {/* Add the custom filter function */}
+        <Command
+          filter={(value, search) => {
+            const currentLabel = items.find(
+              (item) => item.value === value,
+            )?.label;
+            if (
+              currentLabel &&
+              currentLabel.toLowerCase().includes(search.toLowerCase())
+            ) {
+              return 1;
+            }
+            return 0;
+          }}
+        >
           <PopoverAnchor asChild>
             <CommandPrimitive.Input
               asChild
@@ -114,6 +128,7 @@ export default function AutoComplete<T extends string>({
               {items.length > 0 && !isLoading ? (
                 <CommandGroup>
                   {items.map((option) => (
+                    // Ensure value and key are the unique ID
                     <CommandItem
                       key={option.value}
                       value={option.value}
