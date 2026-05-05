@@ -31,8 +31,8 @@ export default function AutoComplete<T extends string>({
   onSearchValueChange,
   items,
   isLoading,
-  emptyMessage = "No items.",
-  placeholder = "Search...",
+  emptyMessage = "Cannot find node with that name.",
+  placeholder = "Search node...",
 }: Props<T>) {
   const [open, setOpen] = useState(false);
 

@@ -1,19 +1,19 @@
 import { useRef, useState, useLayoutEffect, useEffect } from "react";
 import Tree from "react-d3-tree";
-import { Tree as TreeType } from "react-d3-tree";
 
 import type { HierarchyTreeProps } from "./HierarchyTree.types";
 
 export default function HierarchyTree({
+  treeRef,
   data,
   treeOrientation,
   nodeSize,
   handleOnNodeHover,
   treeFilters,
   onRenderedTreeData,
+  selectedNode,
 }: HierarchyTreeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const treeRef = useRef<TreeType>(null);
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
 
   useLayoutEffect(() => {
@@ -23,13 +23,18 @@ export default function HierarchyTree({
   }, []);
 
   useEffect(() => {
-    const renderedTreeData = treeRef.current?.generateTree();
-
-    if (renderedTreeData) {
+    if (treeRef && "current" in treeRef && treeRef.current) {
+      const renderedTreeData = treeRef.current.generateTree();
       const { nodes } = renderedTreeData;
       onRenderedTreeData(nodes);
     }
-  }, [treeFilters, onRenderedTreeData]);
+  }, [treeFilters, onRenderedTreeData, treeRef]);
+
+  useEffect(() => {
+    if (selectedNode && treeRef && "current" in treeRef && treeRef.current) {
+      treeRef.current.centerNode(selectedNode);
+    }
+  }, [selectedNode, treeRef]);
 
   if (!data) {
     return (

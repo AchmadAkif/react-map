@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 
 import { HierarchyTree, Sidebar } from "../../components";
 import { filterTreeData } from "../../utils";
 
+import { Tree as TreeType } from "react-d3-tree";
 import {
   type TreeFilters,
   type TreeOrientation,
@@ -12,10 +13,12 @@ import {
 } from "../../types";
 
 const Main = ({ data }: { data: RawNodeDatum }) => {
+  const treeRef = useRef<TreeType>(null);
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");
+  const [selectedNode, setSelectedNode] = useState<renderedNode | null>(null);
   const [renderedTreeData, setRenderedTreeData] = useState<
-    { value: string; label: string }[]
+    { value: string; label: string; nodePointer: renderedNode }[]
   >([]);
   const [treeOrientation, setTreeOrientation] =
     useState<TreeOrientation>("vertical");
@@ -62,21 +65,33 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
       return {
         value: node.data.__rd3t.id,
         label: node.data.name,
+        nodePointer: node,
       };
     });
 
     setRenderedTreeData(filterData);
   };
 
+  const handleSelectedValueChange = (value: string) => {
+    setSelectedValue(value);
+
+    const selectedNode =
+      renderedTreeData.find((node) => node.value === value)?.nodePointer ??
+      null;
+    setSelectedNode(selectedNode);
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden">
       <HierarchyTree
+        treeRef={treeRef}
         data={filteredTreeData}
         treeOrientation={treeOrientation}
         nodeSize={nodeSpacing}
         handleOnNodeHover={handleOnNodeHover}
         treeFilters={treeFilters}
         onRenderedTreeData={handleRenderedTreeData}
+        selectedNode={selectedNode}
       />
       <Sidebar
         treeOrientation={treeOrientation}
@@ -89,7 +104,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
         searchValue={searchValue}
         onSearchValueChange={setSearchValue}
         selectedValue={selectedValue}
-        onSelectedValueChange={setSelectedValue}
+        onSelectedValueChange={handleSelectedValueChange}
         renderedTreeData={renderedTreeData}
       />
     </div>
