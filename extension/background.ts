@@ -10,7 +10,7 @@ const cache: Record<number, Message["payload"]> = {};
  * List of allowed message sources that are permitted to communicate with the background script.
  * @type {string[]}
  */
-const allowedMsgSources = ["react-map-content-script"];
+const allowedMsgSources = ["react-map-content-script", "react-map-panel"];
 
 const handleConnection = (port: chrome.runtime.Port) => {
   const tabId = Number(port.name);
@@ -27,6 +27,16 @@ const handleConnection = (port: chrome.runtime.Port) => {
         });
       }
 
+      return;
+    }
+
+    if (
+      message.source === "react-map-panel" &&
+      typeof message.payload === "object" &&
+      message.payload !== null &&
+      "type" in message.payload
+    ) {
+      chrome.tabs.sendMessage(tabId, message);
       return;
     }
     console.log(message.payload);
@@ -65,8 +75,30 @@ const handleMessage = (
     return;
   }
 
+  if (message.source === "react-map-panel") {
+    const targetTabId =
+      typeof message.payload === "object" &&
+      message.payload !== null &&
+      "tabId" in message.payload
+        ? message.payload.tabId
+        : undefined;
+
+    if (typeof targetTabId === "number") {
+      chrome.tabs.sendMessage(targetTabId, message);
+    }
+
+    return;
+  }
+
   if (message.source === "react-map-content-script" && senderTabId) {
-    cache[senderTabId] = message.payload;
+    const shouldCache =
+      typeof message.payload === "object" &&
+      message.payload !== null &&
+      !("type" in message.payload);
+
+    if (shouldCache) {
+      cache[senderTabId] = message.payload;
+    }
 
     if (senderTabId in connections) {
       const currentFiberNode = message.payload;

@@ -59,3 +59,61 @@ export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
 
   return treeData;
 };
+
+const getFirstRenderableFiber = (node: Fiber | null): Fiber | null => {
+  if (!node) return null;
+
+  if (node.tag === 3 || node.tag === 8) {
+    let child = node.child;
+    while (child) {
+      const renderable = getFirstRenderableFiber(child);
+      if (renderable) {
+        return renderable;
+      }
+      child = child.sibling;
+    }
+    return null;
+  }
+
+  return node;
+};
+
+const getRenderableChildren = (node: Fiber): Fiber[] => {
+  const children: Fiber[] = [];
+  let child = node.child;
+
+  while (child) {
+    if (node.tag === 5 && child.tag === 6) {
+      child = child.sibling;
+      continue;
+    }
+
+    const renderable = getFirstRenderableFiber(child);
+    if (renderable) {
+      children.push(renderable);
+    }
+
+    child = child.sibling;
+  }
+
+  return children;
+};
+
+export const findFiberByPath = (
+  root: Fiber | null,
+  path: number[],
+): Fiber | null => {
+  const start = getFirstRenderableFiber(root);
+  if (!start) return null;
+
+  let current = start;
+  for (const index of path) {
+    const children = getRenderableChildren(current);
+    if (index < 0 || index >= children.length) {
+      return null;
+    }
+    current = children[index];
+  }
+
+  return current;
+};

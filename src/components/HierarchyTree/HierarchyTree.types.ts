@@ -7,7 +7,7 @@ export interface HierarchyTreeProps {
   data: RawNodeDatum | null;
   treeOrientation: "vertical" | "horizontal";
   nodeSize: NodeSpacing;
-  handleOnNodeHover?: (node: TreeNodeDatum) => void;
+  handleOnNodeHover?: (node: TreeNodeDatum | null) => void;
   treeFilters: TreeFilters;
   onRenderedTreeData: (data: renderedNode[]) => void;
   selectedNode: renderedNode | null;

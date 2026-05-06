@@ -60,6 +60,9 @@ export default function HierarchyTree({
         onNodeMouseOver={(node) => {
           if (handleOnNodeHover) handleOnNodeHover(node.data);
         }}
+        onNodeMouseOut={() => {
+          if (handleOnNodeHover) handleOnNodeHover(null);
+        }}
         dimensions={
           containerRect
             ? {

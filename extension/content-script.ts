@@ -70,4 +70,18 @@ window.addEventListener("message", (e) => {
   });
 });
 
+chrome.runtime.onMessage.addListener((message) => {
+  if (message?.source !== "react-map-panel") {
+    return;
+  }
+
+  window.postMessage(
+    {
+      ...message,
+      source: "react-map-panel",
+    },
+    window.location.origin,
+  );
+});
+
 injectWhenNodeAvailable(chrome.runtime.getURL("/installHook.js"), "body");
