@@ -1,6 +1,6 @@
 import JsonView from "@uiw/react-json-view";
 import { lightTheme } from "@uiw/react-json-view/light";
-import type { RawNodeDatum } from "react-d3-tree";
+import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 
 import type { TreeFilters } from "./types";
 
@@ -132,4 +132,34 @@ export const filterTreeData = (
     },
     children: filteredNodes,
   };
+};
+
+export const findNodeById = (
+  id: string,
+  treeData: TreeNodeDatum[],
+): TreeNodeDatum | null => {
+  if (!treeData || treeData.length === 0) {
+    return null;
+  }
+
+  const root = treeData[0];
+
+  const traverse = (node: TreeNodeDatum): TreeNodeDatum | null => {
+    if (node.__rd3t.id === id) {
+      return node;
+    }
+
+    if (node.children) {
+      for (const child of node.children) {
+        const found = traverse(child);
+        if (found) {
+          return found;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  return traverse(root);
 };
