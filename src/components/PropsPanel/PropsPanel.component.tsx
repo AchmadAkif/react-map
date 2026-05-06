@@ -8,7 +8,7 @@ const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
     <div className="flex flex-col">
       <p className="font-bold">Props</p>
       {props && Object.keys(props).length > 0 ? (
-        <dl className="w-full">
+        <dl className="w-full flex flex-col gap-1">
           {Object.entries(props).map(([key, value]) => (
             <div key={key} className="flex">
               <dt className="w-24 min-w-20 max-w-25">{key}</dt>
