@@ -1,3 +1,5 @@
+import { Separator } from "../ui/separator";
+
 import { StatePanel } from "../StatePanel";
 import { PropsPanel } from "../PropsPanel";
 
@@ -11,6 +13,7 @@ const ComponentDetails = ({
   return (
     <div className="flex flex-col">
       <StatePanel hoveredNode={hoveredNode} />
+      <Separator className="my-2" />
       <PropsPanel hoveredNode={hoveredNode} />
     </div>
   );
