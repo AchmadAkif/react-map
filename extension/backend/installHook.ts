@@ -1,7 +1,6 @@
-import { debounce, getComponentHooks, getComponentProps } from "./utils";
-import { findFiberByPath, traverseFiber } from "./fiberCrawler";
+import { debounce } from "./utils";
+import { traverseFiber } from "./fiberCrawler";
 import type { FiberRoot } from "./reactInternal.types";
-import type { InspectCommandPayload } from "./types";
 
 const isReactMapDebugMode =
   import.meta.env.VITE_REACT_MAP_DEBUG_MODE === "true";
@@ -23,9 +22,6 @@ const reactInstances = devtoolsGlobalHook?.renderers;
 const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
 
-let latestRoot: FiberRoot | null = null;
-let inspectedPath: number[] | null = null;
-
 (function installHook() {
   if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
     console.error(
@@ -40,41 +36,11 @@ let inspectedPath: number[] | null = null;
 
     const __original_onCommitFiberRootFn = devtoolsGlobalHook.onCommitFiberRoot;
 
-    const sendInspectedComponentUpdate = () => {
-      if (!latestRoot || !inspectedPath) {
-        return;
-      }
-
-      const fiber = findFiberByPath(latestRoot.current, inspectedPath);
-      if (!fiber) {
-        return;
-      }
-
-      window.postMessage(
-        {
-          source: "react-map-installHook",
-          payload: {
-            type: "component-state-updated",
-            path: inspectedPath,
-            state: getComponentHooks(fiber),
-            props: getComponentProps(fiber),
-          },
-        },
-        window.location.origin,
-      );
-    };
-
-    const debouncedComponentUpdate = debounce(
-      sendInspectedComponentUpdate,
-      150,
-    );
-
     // Debounce fiber traversal to improve performance
     const debouncedFiberTraversal = debounce((root: FiberRoot) => {
       try {
         const currentRenderedNode = root.current;
         const serializedNode = traverseFiber(currentRenderedNode);
-        latestRoot = root;
         // Send data to content-script
         window.postMessage(
           {
@@ -105,32 +71,5 @@ let inspectedPath: number[] | null = null;
       debouncedFiberTraversal(root);
       return __original_onCommitFiberRootFn(rendererID, root, ...rest);
     };
-
-    if (typeof devtoolsGlobalHook.on === "function") {
-      devtoolsGlobalHook.on("operations", () => {
-        debouncedComponentUpdate();
-      });
-    }
   }
 })();
-
-window.addEventListener("message", (event) => {
-  const message = event.data;
-  if (message?.source !== "react-map-panel") {
-    return;
-  }
-
-  const payload = message.payload as InspectCommandPayload | undefined;
-  if (!payload || typeof payload !== "object") {
-    return;
-  }
-
-  if (payload.type === "inspect-component") {
-    inspectedPath = payload.path;
-    return;
-  }
-
-  if (payload.type === "stop-inspecting") {
-    inspectedPath = null;
-  }
-});

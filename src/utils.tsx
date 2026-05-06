@@ -134,27 +134,6 @@ export const filterTreeData = (
   };
 };
 
-type RawNodeWithPath = RawNodeDatum & { __reactMapPath?: number[] };
-
-export const addNodePaths = (
-  node: RawNodeDatum | null,
-  path: number[] = [],
-): RawNodeDatum | null => {
-  if (!node) return null;
-
-  const children = node.children?.map((child, index) =>
-    addNodePaths(child, [...path, index]),
-  );
-
-  const nextNode: RawNodeWithPath = {
-    ...node,
-    __reactMapPath: path,
-    children: children?.filter(Boolean) as RawNodeDatum[] | undefined,
-  };
-
-  return nextNode;
-};
-
 export const findNodeById = (
   id: string,
   treeData: TreeNodeDatum[],

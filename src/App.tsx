@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { MainContainer, ErrorPage } from "./containers";
 import { Spinner } from "./components/ui/spinner";
 
-import type {
-  ComponentStateUpdatePayload,
-  Message,
-} from "../extension/backend/types";
+import type { Message } from "../extension/backend/types";
 import type { RawNodeDatum } from "react-d3-tree";
 
 function App() {
@@ -16,8 +13,6 @@ function App() {
   const [status, setStatus] = useState<"success" | "loading" | "error">(
     "loading",
   );
-  const [componentUpdate, setComponentUpdate] =
-    useState<ComponentStateUpdatePayload | null>(null);
 
   useEffect(() => {
     // Create connection with background-service on mount
@@ -31,26 +26,17 @@ function App() {
     });
 
     const onMessageListener = (message: Message) => {
-      if (message.source !== "react-map-backend") {
-        return;
-      }
-
-      if (typeof message.payload === "object" && message.payload !== null) {
-        if ("type" in message.payload) {
-          if (message.payload.type === "component-state-updated") {
-            setComponentUpdate(message.payload);
-          }
-          return;
+      if (
+        message.source === "react-map-backend" &&
+        typeof message.payload !== "string"
+      ) {
+        const fiberTree = message.payload;
+        if (fiberTree) {
+          setCurrentFiberTree(fiberTree);
+          setStatus("success");
+        } else {
+          setStatus("error");
         }
-
-        const fiberTree = message.payload as RawNodeDatum;
-        setCurrentFiberTree(fiberTree);
-        setStatus("success");
-        return;
-      }
-
-      if (typeof message.payload === "string") {
-        setStatus("error");
       }
     };
 
@@ -66,12 +52,7 @@ function App() {
   }, []);
 
   if (status === "success" && currentFiberTree) {
-    return (
-      <MainContainer
-        data={currentFiberTree}
-        componentUpdate={componentUpdate}
-      />
-    );
+    return <MainContainer data={currentFiberTree} />;
   } else if (status === "loading") {
     return (
       <div className="h-screen flex items-center justify-center">
