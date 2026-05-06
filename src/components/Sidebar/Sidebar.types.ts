@@ -13,5 +13,5 @@ export interface SidebarProps {
   onSearchValueChange: (value: string) => void;
   selectedValue: string;
   onSelectedValueChange: (value: string) => void;
-  renderedTreeData: { value: string; label: string }[];
+  renderedNodeData: { value: string; label: string }[];
 }

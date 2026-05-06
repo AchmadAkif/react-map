@@ -17,12 +17,12 @@ const Sidebar = ({
   onSearchValueChange,
   selectedValue,
   onSelectedValueChange,
-  renderedTreeData,
+  renderedNodeData,
 }: SidebarProps) => {
   return (
     <div className="min-w-md h-full overflow-y-auto px-4 py-3 shadow-md">
       <SearchBar
-        items={renderedTreeData}
+        items={renderedNodeData}
         searchValue={searchValue}
         onSearchValueChange={onSearchValueChange}
         selectedValue={selectedValue}
