@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 
 import { HierarchyTree, Sidebar } from "../../components";
-import { filterTreeData, findNodesById } from "../../utils";
+import { filterTreeData, findNodeById } from "../../utils";
 
 import { Tree as TreeType } from "react-d3-tree";
 import {
@@ -88,7 +88,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
       console.log(currentTreeData);
 
       if (currentTreeData) {
-        const currentNode = findNodesById(staleNodeId, currentTreeData);
+        const currentNode = findNodeById(staleNodeId, currentTreeData);
         console.log(currentNode);
       } else {
         console.error("Cannot find current tree data");
