@@ -8,6 +8,12 @@ import type { TreeFilters } from "./types";
 export const renderValue = (value: any) => {
   switch (typeof value) {
     case "string":
+      if (value === "__react_map_undefined__") {
+        return "undefined";
+      }
+      if (value === "f()" || value === "ƒ()") {
+        return "ƒ()";
+      }
       return `"${value}"`;
     case "number":
     case "boolean":

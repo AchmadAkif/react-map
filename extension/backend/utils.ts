@@ -1,5 +1,6 @@
 import type { Fiber } from "./reactInternal.types";
 import type { componentHook } from "../types";
+import { traverseFiber } from "./fiberCrawler";
 
 export const getMetadataLabel = (tag: number): string => {
   switch (tag) {
@@ -89,7 +90,7 @@ export const getComponentName = (node: Fiber): string => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleHookValue = (val: any, hookType?: string): any => {
+const handleHookValue = (val: any, hookType: string): any => {
   if (val === null || val === undefined) return val;
 
   if (hookType === "State") {
@@ -187,6 +188,54 @@ export const getComponentHooks = (node: Fiber): componentHook[] | null => {
   return hooks;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const handlePropValue = (val: any): any => {
+  /**
+   * Since undefined values in objects are stripped by the postMessage clone algorithm.
+   * we decided to use a unique placeholder string. This ensures the key is preserved across the bridge.
+   * The UI's renderValue function will detect this specific string and render it as "undefined".
+   */
+  if (val === undefined) return "__react_map_undefined__";
+
+  if (val === null) return "null";
+
+  if (typeof val === "function") {
+    return "ƒ()";
+  }
+
+  if (typeof val === "object") {
+    // If it's a React Element (circular and complex)
+    if (val.$$typeof) {
+      const componentName = traverseFiber(val)?.name;
+      return `<${componentName}/>`;
+    }
+    return "object";
+
+    // try {
+    //   // If it's a simple object/array, try a shallow clone
+    //   // This is a "smoke test" for the bridge
+    //   if (Array.isArray(val)) {
+    //     return val.map((item) => handlePropValue(item));
+    //   }
+
+    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //   const sanitizedObj: any = {};
+    //   for (const key in val) {
+    //     // Only grab own properties to avoid prototype pollution
+    //     if (Object.prototype.hasOwnProperty.call(val, key)) {
+    //       sanitizedObj[key] = handlePropValue(val[key]);
+    //     }
+    //   }
+    //   return sanitizedObj;
+    // } catch (e) {
+    //   console.error(e);
+    //   return "[Complex/Circular Object]";
+    // }
+  }
+
+  return val;
+};
+
 /**
  * FIXME: This function is not perfect. It returns a hardcoded value for functions, null, undefined, and objects.
  * This is to prevent a data clone error when sending the data to the DevTools panel.
@@ -203,18 +252,7 @@ export const getComponentProps = (node: Fiber): object | null => {
 
   for (const key in node.memoizedProps) {
     const value = node.memoizedProps[key];
-
-    if (typeof value === "function") {
-      props[key] = "f()";
-    } else if (value === null) {
-      props[key] = "null";
-    } else if (value === undefined) {
-      props[key] = "undefined";
-    } else if (typeof value === "object") {
-      props[key] = "{...}";
-    } else {
-      props[key] = value;
-    }
+    props[key] = handlePropValue(value);
   }
 
   return props;

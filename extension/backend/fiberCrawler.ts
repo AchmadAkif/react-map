@@ -57,5 +57,6 @@ export const traverseFiber = (node: Fiber | null): RawNodeDatum | null => {
     child = child.sibling;
   }
 
+  console.log(treeData.name, node.memoizedProps);
   return treeData;
 };
