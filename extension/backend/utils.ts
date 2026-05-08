@@ -210,7 +210,8 @@ const handlePropValue = (val: any, visited = new WeakSet(), depth = 0): any => {
    */
   if (val === undefined) return "__react_map_undefined__";
 
-  if (val === null) return "null";
+  if (val === null) return null;
+
   if (depth > 10) return "[Max Depth Exceeded]";
 
   if (typeof val === "function") {
