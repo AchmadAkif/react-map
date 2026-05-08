@@ -14,6 +14,9 @@ export const renderValue = (value: any) => {
       if (value === "f()" || value === "ƒ()") {
         return "ƒ()";
       }
+      if (value.includes("/>")) {
+        return value;
+      }
       return `"${value}"`;
     case "number":
     case "boolean":
