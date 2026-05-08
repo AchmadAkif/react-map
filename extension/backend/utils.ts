@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Fiber } from "./reactInternal.types";
 import type { componentHook } from "../types";
 import { traverseFiber } from "./fiberCrawler";
@@ -89,9 +90,14 @@ export const getComponentName = (node: Fiber): string => {
   return component;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handleHookValue = (val: any, hookType: string): any => {
+const handleHookValue = (
+  val: any,
+  hookType: string,
+  visited = new WeakSet(),
+  depth = 0,
+): any => {
   if (val === null || val === undefined) return val;
+  if (depth > 10) return "[Max Depth Exceeded]";
 
   if (hookType === "State") {
     if (val instanceof Node) {
@@ -105,6 +111,8 @@ const handleHookValue = (val: any, hookType: string): any => {
     }
 
     if (typeof val === "object") {
+      if (visited.has(val)) return "[Circular]";
+      visited.add(val);
       // If it's a React Element (circular and complex)
       if (val.$$typeof) return "[React Element]";
 
@@ -112,15 +120,21 @@ const handleHookValue = (val: any, hookType: string): any => {
         // If it's a simple object/array, try a shallow clone
         // This is a "smoke test" for the bridge
         if (Array.isArray(val)) {
-          return val.map((item) => handleHookValue(item, hookType));
+          return val.map((item) =>
+            handleHookValue(item, hookType, visited, depth + 1),
+          );
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sanitizedObj: any = {};
         for (const key in val) {
           // Only grab own properties to avoid prototype pollution
           if (Object.prototype.hasOwnProperty.call(val, key)) {
-            sanitizedObj[key] = handleHookValue(val[key], hookType);
+            sanitizedObj[key] = handleHookValue(
+              val[key],
+              hookType,
+              visited,
+              depth + 1,
+            );
           }
         }
         return sanitizedObj;
@@ -188,8 +202,7 @@ export const getComponentHooks = (node: Fiber): componentHook[] | null => {
   return hooks;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const handlePropValue = (val: any): any => {
+const handlePropValue = (val: any, visited = new WeakSet(), depth = 0): any => {
   /**
    * Since undefined values in objects are stripped by the postMessage clone algorithm.
    * we decided to use a unique placeholder string. This ensures the key is preserved across the bridge.
@@ -198,39 +211,40 @@ const handlePropValue = (val: any): any => {
   if (val === undefined) return "__react_map_undefined__";
 
   if (val === null) return "null";
+  if (depth > 10) return "[Max Depth Exceeded]";
 
   if (typeof val === "function") {
     return "ƒ()";
   }
 
   if (typeof val === "object") {
+    if (visited.has(val)) return "[Circular]";
+    visited.add(val);
     // If it's a React Element (circular and complex)
     if (val.$$typeof) {
       const componentName = traverseFiber(val)?.name;
       return `<${componentName}/>`;
     }
-    return "object";
 
-    // try {
-    //   // If it's a simple object/array, try a shallow clone
-    //   // This is a "smoke test" for the bridge
-    //   if (Array.isArray(val)) {
-    //     return val.map((item) => handlePropValue(item));
-    //   }
+    try {
+      // If it's a simple object/array, try a shallow clone
+      // This is a "smoke test" for the bridge
+      if (Array.isArray(val)) {
+        return val.map((item) => handlePropValue(item, visited, depth + 1));
+      }
 
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   const sanitizedObj: any = {};
-    //   for (const key in val) {
-    //     // Only grab own properties to avoid prototype pollution
-    //     if (Object.prototype.hasOwnProperty.call(val, key)) {
-    //       sanitizedObj[key] = handlePropValue(val[key]);
-    //     }
-    //   }
-    //   return sanitizedObj;
-    // } catch (e) {
-    //   console.error(e);
-    //   return "[Complex/Circular Object]";
-    // }
+      const sanitizedObj: any = {};
+      for (const key in val) {
+        // Only grab own properties to avoid prototype pollution
+        if (Object.prototype.hasOwnProperty.call(val, key)) {
+          sanitizedObj[key] = handlePropValue(val[key], visited, depth + 1);
+        }
+      }
+      return sanitizedObj;
+    } catch (e) {
+      console.error(e);
+      return "[Complex/Circular Object]";
+    }
   }
 
   return val;
@@ -269,7 +283,6 @@ export const getIsComponentDOM = (node: Fiber): boolean | null => {
   return null;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const debounce = (callback: (...args: any[]) => void, wait: number) => {
   let timeoutId: number | null = null;
 
