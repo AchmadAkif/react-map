@@ -1,3 +1,5 @@
+const _DEBUG = import.meta.env.VITE_REACT_MAP_DEBUG_MODE;
+
 /**
  * List of allowed message sources that are permitted to communicate with the background script.
  * @type {string[]}
@@ -17,10 +19,6 @@ function injectScript(file: string, node: string) {
 
   targetElement.appendChild(scriptElement);
 }
-
-// setTimeout(() => {
-//   injectScript(chrome.runtime.getURL("/installHook.js"), "body");
-// }, 5000);
 
 // Use MutationObserver instead of setTimeout for reliable hook injection
 function injectWhenNodeAvailable(file: string, node: string) {
@@ -48,7 +46,7 @@ function injectWhenNodeAvailable(file: string, node: string) {
 // Listen message from user app(webpage context) *installHook.ts*
 window.addEventListener("message", (e) => {
   const message = e.data;
-  if (message.source === "react-map-installHook") {
+  if (_DEBUG && message.source === "react-map-installHook") {
     console.log("msg from installHook received by content-script", e.data);
   }
   /**
