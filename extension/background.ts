@@ -5,12 +5,12 @@ import type { Message } from "./backend/types";
  * @type {Record<number, chrome.runtime.Port>}
  */
 const connections: Record<number, chrome.runtime.Port> = {};
-
+const cache: Record<number, Message["payload"]> = {};
 /**
  * List of allowed message sources that are permitted to communicate with the background script.
  * @type {string[]}
  */
-const allowedMsgSources = ["react-map-extension"];
+const allowedMsgSources = ["react-map-content-script"];
 
 const handleConnection = (port: chrome.runtime.Port) => {
   const tabId = Number(port.name);
@@ -19,6 +19,14 @@ const handleConnection = (port: chrome.runtime.Port) => {
     if (message.source === "react-map-panel" && message.payload === "init") {
       connections[tabId] = port;
       console.log(`tab ${tabId} connected`, message);
+
+      const cachedPayload = cache[tabId];
+      if (cachedPayload !== undefined) {
+        port.postMessage({
+          source: "react-map-backend",
+          payload: cachedPayload,
+        });
+      }
 
       return;
     }
@@ -40,28 +48,38 @@ const handleMessage = (
   sender: chrome.runtime.MessageSender,
 ) => {
   const senderTabId = sender.tab?.id;
+
+  console.log(
+    "msg received from content-script by extension background and cached",
+    message,
+    cache,
+  );
   /**
    * Only accept messages that we know are ours. Note that this is not foolproof
    * and the page can easily spoof messages if it wants to.
    */
   if (
     typeof message !== "object" ||
-    message === null ||
+    !message ||
     !allowedMsgSources.includes(message.source)
   ) {
     return;
   }
 
   if (
-    message.source === "react-map-extension" &&
-    senderTabId !== undefined &&
-    senderTabId in connections
+    message.source === "react-map-content-script" &&
+    senderTabId !== undefined
   ) {
-    const currentFiberNode = message.payload;
-    connections[senderTabId].postMessage({
-      source: "react-map-backend",
-      payload: currentFiberNode,
-    });
+    cache[senderTabId] = message.payload;
+
+    if (senderTabId in connections) {
+      const currentFiberNode = message.payload;
+      connections[senderTabId].postMessage({
+        source: "react-map-backend",
+        payload: currentFiberNode,
+      });
+      return;
+    }
     return;
   }
 
@@ -74,5 +92,5 @@ const handleMessage = (
   return;
 };
 
-chrome.runtime.onConnect.addListener(handleConnection);
 chrome.runtime.onMessage.addListener(handleMessage);
+chrome.runtime.onConnect.addListener(handleConnection);

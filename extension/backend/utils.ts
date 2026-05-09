@@ -1,4 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Fiber } from "./reactInternal.types";
+import type { componentHook } from "../types";
+import { traverseFiber } from "./fiberCrawler";
 
 export const getMetadataLabel = (tag: number): string => {
   switch (tag) {
@@ -87,20 +90,189 @@ export const getComponentName = (node: Fiber): string => {
   return component;
 };
 
-export const getComponentState = (node: Fiber): object | null => {
-  if (node.memoizedState) {
-    return node.memoizedState;
+const handleHookValue = (
+  val: any,
+  hookType: string,
+  visited = new WeakSet(),
+  depth = 0,
+): any => {
+  if (val === null || val === undefined) return val;
+  if (depth > 10) return "[Max Depth Exceeded]";
+
+  if (hookType === "State") {
+    if (val instanceof Node) {
+      const tagName = (val as HTMLElement).tagName?.toLowerCase() || "node";
+      const id = (val as HTMLElement).id ? `#${(val as HTMLElement).id}` : "";
+      return `<${tagName}${id}>`;
+    }
+
+    if (typeof val === "function") {
+      return "ƒ()";
+    }
+
+    if (typeof val === "object") {
+      if (visited.has(val)) return "[Circular]";
+      visited.add(val);
+      // If it's a React Element (circular and complex)
+      if (val.$$typeof) return "[React Element]";
+
+      try {
+        // If it's a simple object/array, try a shallow clone
+        // This is a "smoke test" for the bridge
+        if (Array.isArray(val)) {
+          return val.map((item) =>
+            handleHookValue(item, hookType, visited, depth + 1),
+          );
+        }
+
+        const sanitizedObj: any = {};
+        for (const key in val) {
+          // Only grab own properties to avoid prototype pollution
+          if (Object.prototype.hasOwnProperty.call(val, key)) {
+            sanitizedObj[key] = handleHookValue(
+              val[key],
+              hookType,
+              visited,
+              depth + 1,
+            );
+          }
+        }
+        return sanitizedObj;
+      } catch (e) {
+        console.error(e);
+        return "[Complex/Circular Object]";
+      }
+    }
+
+    return val;
   }
 
-  return null;
+  if (hookType === "Effect") return "() => {}";
+  if (hookType === "Ref") return "() => {}";
+
+  if (hookType === "Memo") return hookType;
 };
 
-export const getComponentProps = (node: Fiber): object | null => {
-  if (node.memoizedProps) {
-    return node.memoizedProps;
+export const getComponentHooks = (node: Fiber): componentHook[] | null => {
+  const hooks = [];
+  let currentMemoizedState = node.memoizedState;
+
+  if (!currentMemoizedState) {
+    return null;
   }
 
-  return null;
+  let type = "State";
+  while (currentMemoizedState) {
+    if (
+      currentMemoizedState.queue &&
+      typeof currentMemoizedState.queue.dispatch === "function"
+    ) {
+      type = "State";
+    } else if (
+      currentMemoizedState.memoizedState &&
+      typeof currentMemoizedState.memoizedState === "object" &&
+      ["tag", "create", "destroy"].every(
+        (key) => key in currentMemoizedState.memoizedState,
+      )
+    ) {
+      type = "Effect";
+    } else if (
+      currentMemoizedState.memoizedState &&
+      typeof currentMemoizedState.memoizedState === "object" &&
+      Object.keys(currentMemoizedState.memoizedState).length === 1 &&
+      Object.hasOwn(currentMemoizedState.memoizedState, "current")
+    ) {
+      type = "Ref";
+    } else if (
+      Array.isArray(currentMemoizedState.memoizedState) &&
+      currentMemoizedState.memoizedState.length > 0
+    ) {
+      type = "Memo";
+    }
+
+    hooks.push({
+      index: hooks.length,
+      type: type,
+      value: handleHookValue(currentMemoizedState.memoizedState, type),
+    });
+
+    currentMemoizedState = currentMemoizedState.next;
+  }
+
+  return hooks;
+};
+
+const handlePropValue = (val: any, visited = new WeakSet(), depth = 0): any => {
+  /**
+   * Since undefined values in objects are stripped by the postMessage clone algorithm.
+   * we decided to use a unique placeholder string. This ensures the key is preserved across the bridge.
+   * The UI's renderValue function will detect this specific string and render it as "undefined".
+   */
+  if (val === undefined) return "__react_map_undefined__";
+
+  if (val === null) return null;
+
+  if (depth > 10) return "[Max Depth Exceeded]";
+
+  if (typeof val === "function") {
+    return "ƒ()";
+  }
+
+  if (typeof val === "object") {
+    if (visited.has(val)) return "[Circular]";
+    visited.add(val);
+    // If it's a React Element (circular and complex)
+    if (val.$$typeof) {
+      const componentName = traverseFiber(val)?.name;
+      return `<${componentName}/>`;
+    }
+
+    try {
+      // If it's a simple object/array, try a shallow clone
+      // This is a "smoke test" for the bridge
+      if (Array.isArray(val)) {
+        return val.map((item) => handlePropValue(item, visited, depth + 1));
+      }
+
+      const sanitizedObj: any = {};
+      for (const key in val) {
+        // Only grab own properties to avoid prototype pollution
+        if (Object.prototype.hasOwnProperty.call(val, key)) {
+          sanitizedObj[key] = handlePropValue(val[key], visited, depth + 1);
+        }
+      }
+      return sanitizedObj;
+    } catch (e) {
+      console.error(e);
+      return "[Complex/Circular Object]";
+    }
+  }
+
+  return val;
+};
+
+/**
+ * FIXME: This function is not perfect. It returns a hardcoded value for functions, null, undefined, and objects.
+ * This is to prevent a data clone error when sending the data to the DevTools panel.
+ * A better solution would be to serialize the props in a way that can be safely cloned.
+ *
+ * @see https://github.com/AchmadAkif/react-map/issues/27
+ */
+export const getComponentProps = (node: Fiber): object | null => {
+  const props: Record<string, unknown> = {};
+
+  if (!node.memoizedProps) {
+    return null;
+  }
+
+  for (const key in node.memoizedProps) {
+    if (Object.prototype.hasOwnProperty.call(node.memoizedProps, key)) {
+      const value = node.memoizedProps[key];
+      props[key] = handlePropValue(value);
+    }
+  }
+
+  return props;
 };
 
 export const getIsComponentDOM = (node: Fiber): boolean | null => {
@@ -112,4 +284,18 @@ export const getIsComponentDOM = (node: Fiber): boolean | null => {
   }
 
   return null;
+};
+
+export const debounce = (callback: (...args: any[]) => void, wait: number) => {
+  let timeoutId: number | null = null;
+
+  return (...args: unknown[]) => {
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
+
+    timeoutId = window.setTimeout(() => {
+      callback(...args);
+    }, wait);
+  };
 };

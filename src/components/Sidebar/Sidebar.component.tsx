@@ -1,4 +1,7 @@
-import { Select, Slider, TextField } from "../RadixUI";
+import { Separator } from "../ui/separator";
+import { ComponentDetails } from "../ComponentDetails";
+import { DisplayPreferences } from "../DisplayPreferences";
+import { SearchBar } from "../SearchBar";
 
 import type { SidebarProps } from "./Sidebar.types";
 
@@ -7,38 +10,35 @@ const Sidebar = ({
   onSetOrientation,
   nodeSpacing,
   onNodeSpacingChange,
+  hoveredNode,
+  treeFilters,
+  onFilterChange,
+  searchValue,
+  onSearchValueChange,
+  selectedValue,
+  onSelectedValueChange,
+  renderedNodeData,
 }: SidebarProps) => {
   return (
-    <div className="px-2 py-3 shadow-md">
-      <h2 className="text-lg font-bold">React-Map</h2>
-      <p>Tree Orientation</p>
-      <Select
-        value={treeOrientation}
-        onValueChange={onSetOrientation}
-        options={["Vertical", "Horizontal"]}
+    <div className="min-w-md h-full overflow-y-auto px-4 py-3 shadow-md">
+      <SearchBar
+        items={renderedNodeData}
+        searchValue={searchValue}
+        onSearchValueChange={onSearchValueChange}
+        selectedValue={selectedValue}
+        onSelectedValueChange={onSelectedValueChange}
       />
-      <p>Horizontal Spacing</p>
-      <Slider
-        value={[nodeSpacing.x]}
-        size="1"
-        onValueChange={(value) => onNodeSpacingChange(value[0], "x")}
+      <Separator className="my-2" />
+      <DisplayPreferences
+        treeOrientation={treeOrientation}
+        nodeSpacing={nodeSpacing}
+        handleSetOrientation={onSetOrientation}
+        handleNodeSpacingChange={onNodeSpacingChange}
+        treeFilters={treeFilters}
+        handleFilterChange={onFilterChange}
       />
-      <TextField
-        type="number"
-        value={nodeSpacing.x}
-        onValueChange={(value) => onNodeSpacingChange(Number(value), "x")}
-      />
-      <p>Vertical Spacing</p>
-      <Slider
-        value={[nodeSpacing.y]}
-        size="1"
-        onValueChange={(value) => onNodeSpacingChange(value[0], "y")}
-      />
-      <TextField
-        type="number"
-        value={nodeSpacing.y}
-        onValueChange={(value) => onNodeSpacingChange(Number(value), "y")}
-      />
+      <Separator className="my-2" />
+      <ComponentDetails hoveredNode={hoveredNode} />
     </div>
   );
 };

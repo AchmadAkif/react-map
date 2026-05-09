@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { MainContainer } from "./containers";
+import { MainContainer, ErrorPage } from "./containers";
+import { Spinner } from "./components/ui/spinner";
 
 import type { Message } from "../extension/backend/types";
 import type { RawNodeDatum } from "react-d3-tree";
@@ -8,6 +9,9 @@ function App() {
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const [currentFiberTree, setCurrentFiberTree] = useState<RawNodeDatum | null>(
     null,
+  );
+  const [status, setStatus] = useState<"success" | "loading" | "error">(
+    "loading",
   );
 
   useEffect(() => {
@@ -27,7 +31,12 @@ function App() {
         typeof message.payload !== "string"
       ) {
         const fiberTree = message.payload;
-        setCurrentFiberTree(fiberTree);
+        if (fiberTree) {
+          setCurrentFiberTree(fiberTree);
+          setStatus("success");
+        } else {
+          setStatus("error");
+        }
       }
     };
 
@@ -42,22 +51,17 @@ function App() {
     };
   }, []);
 
-  if (typeof currentFiberTree === "object" && currentFiberTree !== null) {
+  if (status === "success" && currentFiberTree) {
     return <MainContainer data={currentFiberTree} />;
+  } else if (status === "loading") {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  } else if (status === "error") {
+    return <ErrorPage />;
   }
-  /**
-   * TODO
-   * @see https://github.com/AchmadAkif/react-map/issues/16
-   */
-  return (
-    <>
-      <h2>
-        Cannot render react component tree. Triggering a setState() usually
-        fixes this.
-      </h2>
-      <p>Note: React-Sight works best on local projects with React v16+</p>
-    </>
-  );
 }
 
 export default App;

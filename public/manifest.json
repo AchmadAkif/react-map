@@ -1,6 +1,6 @@
 {
   "name": "React-Map",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "manifest_version": 3,
   "devtools_page": "devtools.html",
   "background": {

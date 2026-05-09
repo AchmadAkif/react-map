@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { debounce } from "./utils";
 import { traverseFiber } from "./fiberCrawler";
 import type { FiberRoot } from "./reactInternal.types";
 
@@ -16,25 +16,11 @@ if (!hasReactDevtoolsInstalled) {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const devtoolsGlobalHook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
 const reactInstances = devtoolsGlobalHook?.renderers;
 const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
-const devtoolsHook = devtoolsGlobalHook;
-
-const debounce = (callback: (...args: any[]) => void, wait: number) => {
-  let timeoutId: number | null = null;
-
-  return (...args: any[]) => {
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-    }
-
-    timeoutId = window.setTimeout(() => {
-      callback(...args);
-    }, wait);
-  };
-};
 
 (function installHook() {
   if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
@@ -48,7 +34,7 @@ const debounce = (callback: (...args: any[]) => void, wait: number) => {
     if (isReactMapDebugMode)
       console.log("[React-Map] React version: ", instanceVersion);
 
-    const __original_onCommitFiberRootFn = devtoolsHook.onCommitFiberRoot;
+    const __original_onCommitFiberRootFn = devtoolsGlobalHook.onCommitFiberRoot;
 
     // Debounce fiber traversal to improve performance
     const debouncedFiberTraversal = debounce((root: FiberRoot) => {
@@ -58,7 +44,7 @@ const debounce = (callback: (...args: any[]) => void, wait: number) => {
         // Send data to content-script
         window.postMessage(
           {
-            source: "react-map-extension",
+            source: "react-map-installHook",
             payload: serializedNode,
           },
           window.location.origin,
@@ -69,12 +55,18 @@ const debounce = (callback: (...args: any[]) => void, wait: number) => {
       }
     }, 500);
 
+    // Check for already mounted fiber roots in case we missed the first onCommitFiberRoot execution on initial load
+    if (devtoolsGlobalHook.getFiberRoots) {
+      const roots = devtoolsGlobalHook.getFiberRoots(1);
+      roots.forEach((root: FiberRoot) => debouncedFiberTraversal(root));
+    }
+
     // Begin monkey-patch react devtools onCommitFiberRoot function.
     // onCommitFiberRoot function will run every component changes, a state updates, or the app first loads.
-    devtoolsHook.onCommitFiberRoot = function onCommitFiberRoot(
+    devtoolsGlobalHook.onCommitFiberRoot = function onCommitFiberRoot(
       rendererID: number,
-      root: any,
-      ...rest: any[]
+      root: FiberRoot,
+      ...rest: unknown[]
     ) {
       debouncedFiberTraversal(root);
       return __original_onCommitFiberRootFn(rendererID, root, ...rest);
