@@ -20,7 +20,7 @@ const handleConnection = (port: chrome.runtime.Port) => {
       connections[tabId] = port;
       console.log(`tab ${tabId} connected`, message);
 
-      if (tabId in connections) {
+      if (Object.prototype.hasOwnProperty.call(cache, tabId)) {
         connections[tabId].postMessage({
           source: "react-map-backend",
           payload: cache[tabId],
