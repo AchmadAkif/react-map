@@ -28,7 +28,7 @@ export default function HierarchyTree({
       const { nodes } = renderedTreeData;
       onRenderedTreeData(nodes);
     }
-  }, [treeFilters, onRenderedTreeData, treeRef]);
+  }, [data, treeFilters, onRenderedTreeData, treeRef]);
 
   useEffect(() => {
     if (selectedNode && treeRef && "current" in treeRef && treeRef.current) {

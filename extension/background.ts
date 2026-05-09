@@ -65,7 +65,10 @@ const handleMessage = (
     return;
   }
 
-  if (message.source === "react-map-content-script" && senderTabId) {
+  if (
+    message.source === "react-map-content-script" &&
+    senderTabId !== undefined
+  ) {
     cache[senderTabId] = message.payload;
 
     if (senderTabId in connections) {

@@ -8,4 +8,4 @@ export type TreeFilters = {
   hideDomComponent: boolean;
   hideReduxComponent: boolean;
 };
-export type renderedNode = HierarchyPointNode<TreeNodeDatum>;
+export type RenderedNode = HierarchyPointNode<TreeNodeDatum>;

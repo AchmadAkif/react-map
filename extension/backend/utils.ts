@@ -266,8 +266,10 @@ export const getComponentProps = (node: Fiber): object | null => {
   }
 
   for (const key in node.memoizedProps) {
-    const value = node.memoizedProps[key];
-    props[key] = handlePropValue(value);
+    if (Object.prototype.hasOwnProperty.call(node.memoizedProps, key)) {
+      const value = node.memoizedProps[key];
+      props[key] = handlePropValue(value);
+    }
   }
 
   return props;
