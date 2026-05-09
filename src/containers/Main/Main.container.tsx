@@ -1,24 +1,24 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef } from "react";
 import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 
 import { HierarchyTree, Sidebar } from "../../components";
-import { filterTreeData, findNodeById } from "../../utils";
+import { filterTreeData } from "../../utils";
 
 import { Tree as TreeType } from "react-d3-tree";
 import {
   type TreeFilters,
   type TreeOrientation,
   type NodeSpacing,
-  type renderedNode,
+  type RenderedNode,
 } from "../../types";
 
 const Main = ({ data }: { data: RawNodeDatum }) => {
   const treeRef = useRef<TreeType>(null);
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");
-  const [selectedNode, setSelectedNode] = useState<renderedNode | null>(null);
+  const [selectedNode, setSelectedNode] = useState<RenderedNode | null>(null);
   const [renderedNodeData, setRenderedNodeData] = useState<
-    { value: string; label: string; nodePointer: renderedNode }[]
+    { value: string; label: string; nodePointer: RenderedNode }[]
   >([]);
   const [treeOrientation, setTreeOrientation] =
     useState<TreeOrientation>("vertical");
@@ -60,7 +60,7 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
     setHoveredNode(node);
   };
 
-  const handleRenderedTreeData = (data: renderedNode[]) => {
+  const handleRenderedTreeData = (data: RenderedNode[]) => {
     const filterData = data.map((node) => {
       return {
         value: node.data.__rd3t.id,
@@ -80,22 +80,6 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
       null;
     setSelectedNode(selectedNode);
   };
-
-  useEffect(() => {
-    if (hoveredNode) {
-      const staleNodeId = hoveredNode.__rd3t.id;
-      const currentTreeData = treeRef.current?.state.data;
-      console.log(currentTreeData);
-
-      if (currentTreeData) {
-        const currentNode = findNodeById(staleNodeId, currentTreeData);
-        console.log(currentNode);
-      } else {
-        console.error("Cannot find current tree data");
-      }
-      return;
-    }
-  }, [data, hoveredNode]);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
