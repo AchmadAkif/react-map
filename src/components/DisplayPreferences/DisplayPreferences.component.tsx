@@ -5,6 +5,7 @@ import { SpacingPreference } from "../SpacingPreference";
 import type { OrientationPreferenceProps } from "../OrientationPreference/OrientationPreference.types";
 import type { FilterPreferenceProps } from "../FilterPreference/FilterPreference.types";
 import type { SpacingPreferenceProps } from "../SpacingPreference/SpacingPreference.types";
+import { ModeToggle } from "../ui/mode-toggle";
 
 type DisplayPreferencesProps = OrientationPreferenceProps &
   FilterPreferenceProps &
@@ -29,6 +30,7 @@ const DisplayPreferences = ({
           treeFilters={treeFilters}
           handleFilterChange={handleFilterChange}
         />
+        <ModeToggle />
       </div>
       <SpacingPreference
         nodeSpacing={nodeSpacing}
