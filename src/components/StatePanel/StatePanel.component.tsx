@@ -14,7 +14,7 @@ const StatePanel = ({ hoveredNode }: StatePanelProps) => {
             .filter((state) => state.type === "State")
             .map((state) => (
               <div key={state.index} className="flex">
-                <dt className="w-24 min-w-20 max-w-25">
+                <dt className="min-w-20">
                   <div className="flex items-center gap-2">
                     <StateBadge index={state.index} />
                     <p>{state.type}</p>

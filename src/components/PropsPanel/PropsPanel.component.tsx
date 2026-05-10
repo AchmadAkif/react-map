@@ -11,8 +11,8 @@ const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
       {props && Object.keys(props).length > 0 ? (
         <dl className="w-full flex flex-col gap-1">
           {Object.entries(props).map(([key, value]) => (
-            <div key={key} className="flex">
-              <dt className="w-24 min-w-20 max-w-25">{key}</dt>
+            <div key={key} className="flex gap-2">
+              <dt className="min-w-20">{key}</dt>
               <dd>{renderValue(value)}</dd>
             </div>
           ))}
