@@ -1,7 +1,7 @@
 import { Separator } from "../ui/separator";
 import { ComponentDetails } from "../ComponentDetails";
-import { DisplayPreferences } from "../DisplayPreferences";
 import { SearchBar } from "../SearchBar";
+import { PreferencesCollapsible } from "../PreferencesCollapsible";
 
 import type { SidebarProps } from "./Sidebar.types";
 
@@ -29,7 +29,7 @@ const Sidebar = ({
         onSelectedValueChange={onSelectedValueChange}
       />
       <Separator className="my-2" />
-      <DisplayPreferences
+      <PreferencesCollapsible
         treeOrientation={treeOrientation}
         nodeSpacing={nodeSpacing}
         handleSetOrientation={onSetOrientation}
