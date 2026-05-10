@@ -6,7 +6,7 @@ import type { StatePanelProps } from "./StatePanel.types";
 const StatePanel = ({ hoveredNode }: StatePanelProps) => {
   const hooks = hoveredNode?.state;
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col px-4">
       <p className="font-bold">States</p>
       {hooks && hooks.length > 0 ? (
         <dl className="w-full flex flex-col gap-1">

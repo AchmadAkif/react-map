@@ -6,7 +6,7 @@ import type { PropsPanelProps } from "./PropsPanel.types";
 const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
   const props = hoveredNode?.props ? hoveredNode.props : null;
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col px-4">
       <p className="font-bold">Props</p>
       {props && Object.keys(props).length > 0 ? (
         <dl className="w-full flex flex-col gap-1">
