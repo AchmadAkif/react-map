@@ -97,6 +97,7 @@ const handleHookValue = (
   depth = 0,
 ): any => {
   if (val === null || val === undefined) return val;
+  if (typeof val === "symbol") return val.toString();
   if (depth > 10) return "[Max Depth Exceeded]";
 
   if (hookType === "State") {
@@ -211,6 +212,8 @@ const handlePropValue = (val: any, visited = new WeakSet(), depth = 0): any => {
   if (val === undefined) return "__react_map_undefined__";
 
   if (val === null) return null;
+
+  if (typeof val === "symbol") return val.toString();
 
   if (depth > 10) return "[Max Depth Exceeded]";
 
