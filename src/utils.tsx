@@ -1,4 +1,5 @@
 import JsonView from "@uiw/react-json-view";
+import { githubDarkTheme } from "@uiw/react-json-view/githubDark";
 import { lightTheme } from "@uiw/react-json-view/light";
 import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 
@@ -41,7 +42,7 @@ export const getValueTypeClass = (value: any) => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const renderValue = (value: any) => {
+export const renderValue = (value: any, resolvedTheme: "light" | "dark") => {
   switch (typeof value) {
     case "string":
       if (value === "__react_map_undefined__") {
@@ -72,7 +73,7 @@ export const renderValue = (value: any) => {
       return (
         <JsonView
           value={value}
-          style={lightTheme}
+          style={resolvedTheme === "dark" ? githubDarkTheme : lightTheme}
           collapsed={true}
           displayDataTypes={false}
           enableClipboard={true}
