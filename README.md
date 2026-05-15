@@ -1,75 +1,79 @@
-# React + TypeScript + Vite
+# React Map
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**A browser extension for visualizing your React application's component hierarchy in real-time.**
 
-Currently, two official plugins are available:
+This project is being developed to fulfill the requirements for my bachelor's degree. It's an extension that visualizes React components by patching the React Devtools global hook.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## How It Works
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+`react-map` works by tapping into the React Devtools global hook (`__REACT_DEVTOOLS_GLOBAL_HOOK__`). By patching this hook, it can intercept information about your React application's component structure, including the fiber tree, and use it to render a visual map. This allows you to "see" your app's architecture at a glance.
 
-Note: This will impact Vite dev & build performances.
+## Installation
 
-## Expanding the ESLint configuration
+As the extension is in development, it is not yet available on the Chrome Web Store or Firefox Add-ons Marketplace. To use it, you'll need to install it manually.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**IMPORTANT:** `react-map` relies on the official **React Developer Tools** extension to intercept the fiber tree. Please ensure it is installed and enabled in your browser before proceeding:
+* [React DevTools for Chrome](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
+  
+### For Chrome
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/AchmadAkif/react-map.git
+    ```
+2.  **Build the extension:**
+    ```bash
+    cd react-map
+    npm install
+    npm run build
+    ```
+    This will create a `dist` or `build` directory.
+3.  **Load the extension in your browser:**
+    *   Navigate to `chrome://extensions` (or `edge://extensions`).
+    *   Enable "Developer mode" (usually a toggle in the top-right).
+    *   Click on "Load unpacked".
+    *   Select the `dist` or `build` directory from the cloned repository.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### For Firefox
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+*(Not yet available. Will be added in the future)*
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Usage
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1.  Once installed, open the Developer Tools in your browser (usually by pressing `F12` or `Ctrl+Shift+I`).
+2.  Look for the "**React Map**" tab and click on it.
+3.  The panel will display the component map of the React application running on the current page.
+
+## Development & Contributing
+
+Contributions are welcome! If you'd like to contribute to the development of `react-map`, please follow these steps:
+
+1.  **Fork the repository.**
+2.  **Create a new branch:** `git checkout -b feature/your-feature-name`
+3.  **Make your changes.**
+4.  **Commit your changes:** `git commit -m "Add some feature"`
+5.  **Push to the branch:** `git push origin feature/your-feature-name`
+6.  **Open a Pull Request.**
+
+### Development Scripts
+
+*   `npm install`: Installs all dependencies.
+*   `npm run dev`: Starts the development server with hot-reloading.
+*   `npm run build`: Bundles the extension for production.
+*   `npm run lint`: Lints the codebase.
+
+## Academic Context
+
+This project is a key component of my thesis for my bachelor's degree. The primary goal is to explore how developers can gain better insights into their applications through advanced tooling and visualization techniques.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+*Authored by AchmadAkif*

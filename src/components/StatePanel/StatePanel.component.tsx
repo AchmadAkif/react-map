@@ -1,12 +1,10 @@
 import { getValueTypeClass, renderValue } from "../../utils";
-import { useTheme } from "../theme-provider";
 import StateBadge from "../StateBadge";
 
 import type { StatePanelProps } from "./StatePanel.types";
 
 const StatePanel = ({ hoveredNode }: StatePanelProps) => {
   const hooks = hoveredNode?.state;
-  const { resolvedTheme } = useTheme();
   return (
     <div className="flex flex-col px-4">
       <p className="font-bold">States</p>
@@ -23,7 +21,7 @@ const StatePanel = ({ hoveredNode }: StatePanelProps) => {
                   </div>
                 </dt>
                 <dd className={getValueTypeClass(state.value)}>
-                  {renderValue(state.value, resolvedTheme)}
+                  {renderValue(state.value)}
                 </dd>
               </div>
             ))}
