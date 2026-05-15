@@ -9,3 +9,16 @@ export type TreeFilters = {
   hideReduxComponent: boolean;
 };
 export type RenderedNode = HierarchyPointNode<TreeNodeDatum>;
+export type InspectableNode =
+  | {
+      name?: string;
+      state?: Array<{
+        index: number;
+        type: string;
+        value: string | number | object;
+      }> | null;
+      props?: object | null;
+      nodePath?: string;
+    }
+  | null
+  | undefined;

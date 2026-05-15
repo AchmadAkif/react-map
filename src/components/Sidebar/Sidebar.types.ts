@@ -1,12 +1,13 @@
-import type { TreeNodeDatum } from "react-d3-tree";
 import type { TreeFilters, TreeOrientation, NodeSpacing } from "../../types";
+import type { InspectableNode } from "../../types";
 
 export interface SidebarProps {
   treeOrientation: TreeOrientation;
   onSetOrientation: (orientation: TreeOrientation) => void;
   nodeSpacing: NodeSpacing;
   onNodeSpacingChange: (value: number, axis: "x" | "y") => void;
-  hoveredNode?: TreeNodeDatum | null;
+  hoveredNode?: InspectableNode;
+  lockedNodeUnavailable?: boolean;
   treeFilters: TreeFilters;
   onFilterChange: (filterName: keyof TreeFilters, value: boolean) => void;
   searchValue: string;
