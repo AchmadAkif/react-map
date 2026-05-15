@@ -75,17 +75,6 @@ const Main = ({
     setHoveredNode(node);
   };
 
-  const handleOnNodeClick = (node: RenderedNode) => {
-    const nodePath = (node.data as { nodePath?: string }).nodePath;
-
-    if (!nodePath) {
-      return;
-    }
-
-    onLockNodeChange(lockedNodePath === nodePath ? null : nodePath);
-    setSelectedValue(nodePath);
-  };
-
   const handleRenderedTreeData = (data: RenderedNode[]) => {
     const filterData = data.map((node) => {
       return {
@@ -153,7 +142,6 @@ const Main = ({
         treeOrientation={treeOrientation}
         nodeSize={nodeSpacing}
         handleOnNodeHover={handleOnNodeHover}
-        handleOnNodeClick={handleOnNodeClick}
         treeFilters={treeFilters}
         onRenderedTreeData={handleRenderedTreeData}
         selectedNode={selectedNode}
@@ -165,6 +153,8 @@ const Main = ({
         onNodeSpacingChange={handleNodeSpacingChange}
         hoveredNode={activeNode}
         lockedNodeUnavailable={lockedNodeUnavailable}
+        lockedNodePath={lockedNodePath ?? null}
+        onLockNodeChange={onLockNodeChange}
         treeFilters={treeFilters}
         onFilterChange={handleFilterChange}
         searchValue={searchValue}

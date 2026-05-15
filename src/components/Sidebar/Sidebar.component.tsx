@@ -12,6 +12,8 @@ const Sidebar = ({
   onNodeSpacingChange,
   hoveredNode,
   lockedNodeUnavailable,
+  lockedNodePath,
+  onLockNodeChange,
   treeFilters,
   onFilterChange,
   searchValue,
@@ -42,6 +44,8 @@ const Sidebar = ({
       <ComponentDetails
         hoveredNode={hoveredNode}
         lockedNodeUnavailable={lockedNodeUnavailable}
+        lockedNodePath={lockedNodePath}
+        onLockNodeChange={onLockNodeChange}
       />
     </div>
   );
