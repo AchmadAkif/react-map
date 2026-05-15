@@ -121,7 +121,7 @@ export default function AutoComplete<T extends string>({
             <CommandList>
               {isLoading && (
                 <CommandPrimitive.Loading>
-                  <div className="p-1">
+                  <div className="px-4 py-1">
                     <Skeleton className="h-6 w-full" />
                   </div>
                 </CommandPrimitive.Loading>

@@ -12,6 +12,14 @@ const ComponentDetails = ({
 }) => {
   return (
     <div className="flex flex-col">
+      {hoveredNode?.name && (
+        <>
+          <p className="font-bold mx-2 mb-2 text-blue-500">
+            {hoveredNode?.name}
+          </p>
+          <Separator className="mb-2" />
+        </>
+      )}
       <StatePanel hoveredNode={hoveredNode} />
       <Separator className="my-2" />
       <PropsPanel hoveredNode={hoveredNode} />
