@@ -8,7 +8,6 @@ export interface HierarchyTreeProps {
   treeOrientation: "vertical" | "horizontal";
   nodeSize: NodeSpacing;
   handleOnNodeHover?: (node: TreeNodeDatum) => void;
-  handleOnNodeClick?: (node: RenderedNode) => void;
   treeFilters: TreeFilters;
   onRenderedTreeData: (data: RenderedNode[]) => void;
   selectedNode: RenderedNode | null;

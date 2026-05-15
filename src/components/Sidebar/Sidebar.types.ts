@@ -8,6 +8,8 @@ export interface SidebarProps {
   onNodeSpacingChange: (value: number, axis: "x" | "y") => void;
   hoveredNode?: InspectableNode;
   lockedNodeUnavailable?: boolean;
+  lockedNodePath: string | null;
+  onLockNodeChange: (nodePath: string | null) => void;
   treeFilters: TreeFilters;
   onFilterChange: (filterName: keyof TreeFilters, value: boolean) => void;
   searchValue: string;
