@@ -9,6 +9,7 @@ export default function HierarchyTree({
   treeOrientation,
   nodeSize,
   handleOnNodeHover,
+  handleOnNodeClick,
   treeFilters,
   onRenderedTreeData,
   selectedNode,
@@ -59,6 +60,9 @@ export default function HierarchyTree({
         nodeSize={nodeSize}
         onNodeMouseOver={(node) => {
           if (handleOnNodeHover) handleOnNodeHover(node.data);
+        }}
+        onNodeClick={(node) => {
+          if (handleOnNodeClick) handleOnNodeClick(node);
         }}
         dimensions={
           containerRect

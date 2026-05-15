@@ -1,6 +1,11 @@
 import { debounce } from "./utils";
-import { traverseFiber } from "./fiberCrawler";
+import { findFiberByNodePath, traverseFiber } from "./fiberCrawler";
 import type { FiberRoot } from "./reactInternal.types";
+import type {
+  BackendPayload,
+  LockedNodeSnapshotMessage,
+  TreeSnapshotMessage,
+} from "./types";
 
 const isReactMapDebugMode =
   import.meta.env.VITE_REACT_MAP_DEBUG_MODE === "true";
@@ -21,6 +26,80 @@ const devtoolsGlobalHook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__;
 const reactInstances = devtoolsGlobalHook?.renderers;
 const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
+let latestCommittedRoot: FiberRoot | null = null;
+let activeLockedNodePath: string | null = null;
+
+const postSnapshot = (payload: BackendPayload) => {
+  window.postMessage(
+    {
+      source: "react-map-installHook",
+      payload,
+    },
+    window.location.origin,
+  );
+};
+
+const sendTreeSnapshot = (root: FiberRoot) => {
+  const serializedNode = traverseFiber(root.current);
+
+  postSnapshot({
+    mode: "tree",
+    tree: serializedNode,
+  } satisfies TreeSnapshotMessage);
+};
+
+const sendLockedNodeSnapshot = (root: FiberRoot, nodePath: string) => {
+  const lockedFiberNode = findFiberByNodePath(root.current, nodePath);
+  const serializedNode = traverseFiber(lockedFiberNode, nodePath);
+
+  postSnapshot({
+    mode: "locked-node",
+    node: serializedNode,
+    nodePath,
+  } satisfies LockedNodeSnapshotMessage);
+};
+
+window.addEventListener("message", (event) => {
+  const message = event.data;
+
+  if (
+    typeof message !== "object" ||
+    message === null ||
+    message.source !== "react-map-panel"
+  ) {
+    return;
+  }
+
+  if (message.payload === "init") {
+    if (latestCommittedRoot) {
+      if (activeLockedNodePath) {
+        sendLockedNodeSnapshot(latestCommittedRoot, activeLockedNodePath);
+      } else {
+        sendTreeSnapshot(latestCommittedRoot);
+      }
+    }
+
+    return;
+  }
+
+  if (message.payload.type === "lock-node") {
+    activeLockedNodePath = message.payload.nodePath;
+
+    if (latestCommittedRoot && activeLockedNodePath) {
+      sendLockedNodeSnapshot(latestCommittedRoot, activeLockedNodePath);
+    }
+
+    return;
+  }
+
+  if (message.payload.type === "unlock-node") {
+    activeLockedNodePath = null;
+
+    if (latestCommittedRoot) {
+      sendTreeSnapshot(latestCommittedRoot);
+    }
+  }
+});
 
 (function installHook() {
   if (!hasReactDevtoolsInstalled || !devtoolsGlobalHook) {
@@ -39,16 +118,14 @@ const instanceVersion = instance?.version;
     // Debounce fiber traversal to improve performance
     const debouncedFiberTraversal = debounce((root: FiberRoot) => {
       try {
-        const currentRenderedNode = root.current;
-        const serializedNode = traverseFiber(currentRenderedNode);
-        // Send data to content-script
-        window.postMessage(
-          {
-            source: "react-map-installHook",
-            payload: serializedNode,
-          },
-          window.location.origin,
-        );
+        latestCommittedRoot = root;
+
+        if (activeLockedNodePath) {
+          sendLockedNodeSnapshot(root, activeLockedNodePath);
+          return;
+        }
+
+        sendTreeSnapshot(root);
       } catch (error) {
         console.error("[React-Map] Error: ", error);
         return;
@@ -68,6 +145,7 @@ const instanceVersion = instance?.version;
       root: FiberRoot,
       ...rest: unknown[]
     ) {
+      latestCommittedRoot = root;
       debouncedFiberTraversal(root);
       return __original_onCommitFiberRootFn(rendererID, root, ...rest);
     };
