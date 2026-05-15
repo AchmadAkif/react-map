@@ -58,6 +58,7 @@ const ComponentDetails = ({
           disabled={!isLocked && !canLockHoveredNode}
         >
           <PinIcon className="group-data-[state=on]/toggle:fill-foreground" />
+          {isLocked ? "Unpin" : "Pin this node for live updates"}
         </Toggle>
       </div>
       <Separator className="mb-2" />
