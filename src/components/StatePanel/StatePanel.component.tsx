@@ -1,4 +1,4 @@
-import { renderValue } from "../../utils";
+import { getValueTypeClass, renderValue } from "../../utils";
 import StateBadge from "../StateBadge";
 
 import type { StatePanelProps } from "./StatePanel.types";
@@ -20,7 +20,9 @@ const StatePanel = ({ hoveredNode }: StatePanelProps) => {
                     <p>{state.type}</p>
                   </div>
                 </dt>
-                <dd>{renderValue(state.value)}</dd>
+                <dd className={getValueTypeClass(state.value)}>
+                  {renderValue(state.value)}
+                </dd>
               </div>
             ))}
         </dl>
