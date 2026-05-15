@@ -1,6 +1,6 @@
 // import { renderValue } from "../../utils";
 
-import { renderValue } from "@/utils";
+import { getValueTypeClass, renderValue } from "@/utils";
 import type { PropsPanelProps } from "./PropsPanel.types";
 
 const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
@@ -13,7 +13,7 @@ const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
           {Object.entries(props).map(([key, value]) => (
             <div key={key} className="flex gap-2">
               <dt className="min-w-20">{key}</dt>
-              <dd>{renderValue(value)}</dd>
+              <dd className={getValueTypeClass(value)}>{renderValue(value)}</dd>
             </div>
           ))}
         </dl>

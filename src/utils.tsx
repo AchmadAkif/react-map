@@ -4,6 +4,42 @@ import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 
 import type { TreeFilters } from "./types";
 
+const isJsxLikeComponentName = (value: string) => value.includes("/>");
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getValueTypeClass = (value: any) => {
+  if (value === null || value === "__react_map_undefined__") {
+    return "text-amber-500 dark:text-amber-400";
+  }
+
+  switch (typeof value) {
+    case "string":
+      if (isJsxLikeComponentName(value)) {
+        return "text-slate-700 dark:text-slate-400";
+      }
+      if (value === "f()" || value === "ƒ()") {
+        return "text-fuchsia-500 dark:text-fuchsia-400";
+      }
+      return "text-violet-500 dark:text-violet-400";
+    case "number":
+      return "text-sky-500 dark:text-sky-400";
+    case "boolean":
+      return "text-emerald-500 dark:text-emerald-400";
+    case "bigint":
+      return "text-cyan-500 dark:text-cyan-400";
+    case "undefined":
+      return "text-amber-500 dark:text-amber-400";
+    case "symbol":
+      return "text-rose-500 dark:text-rose-400";
+    case "function":
+      return "text-fuchsia-500 dark:text-fuchsia-400";
+    case "object":
+      return undefined;
+    default:
+      return undefined;
+  }
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const renderValue = (value: any) => {
   switch (typeof value) {
@@ -14,7 +50,7 @@ export const renderValue = (value: any) => {
       if (value === "f()" || value === "ƒ()") {
         return "ƒ()";
       }
-      if (value.includes("/>")) {
+      if (isJsxLikeComponentName(value)) {
         return value;
       }
       return `"${value}"`;
