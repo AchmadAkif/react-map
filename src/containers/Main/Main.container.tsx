@@ -99,7 +99,7 @@ const Main = ({
     [renderedNodeData, selectedValue],
   );
 
-  const isLockActive = lockedNodePath !== null;
+  const isLockActive = typeof lockedNodePath === "string";
   const lockedNodeUnavailable = isLockActive && lockedNodeData === null;
   const activeNode = isLockActive ? lockedNodeData : hoveredNode;
 

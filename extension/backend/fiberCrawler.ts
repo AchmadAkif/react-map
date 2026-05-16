@@ -16,12 +16,6 @@ const buildNodePath = (parentPath: string, childIndex: number) => {
  *
  * @param node - The Fiber node to traverse, or null if no node exists.
  * @returns A serialized representation of the Fiber node and its children, or null if the input node is null.
- *
- * @example
- * ```typescript
- * const fiberRoot = // ... get fiber node from React component
- * const serialized = traverseFiber(fiberRoot);
- * ```
  */
 export const traverseFiber = (
   node: Fiber | null,

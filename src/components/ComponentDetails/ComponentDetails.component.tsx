@@ -51,7 +51,7 @@ const ComponentDetails = ({
           </p>
         )}
         <Toggle
-          aria-label="Toggle bookmark"
+          aria-label={isLocked ? "Unpin node" : "Pin node for live updates"}
           size="sm"
           variant="outline"
           onClick={handleLockToggle}

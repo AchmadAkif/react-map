@@ -32,7 +32,11 @@ const handleConnection = (port: chrome.runtime.Port) => {
     }
 
     if (message.source === "react-map-panel" && message.payload !== "init") {
-      chrome.tabs.sendMessage(tabId, message);
+      chrome.tabs.sendMessage(tabId, message, () => {
+        if (chrome.runtime.lastError) {
+          return;
+        }
+      });
       return;
     }
 
