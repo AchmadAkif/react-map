@@ -1,11 +1,11 @@
-import type { Message } from "./backend/types";
+import type { BackendPayload, BridgeSnapshot, Message } from "./backend/types";
 
 /**
  * Map of active port connections indexed by tab ID.
  * @type {Record<number, chrome.runtime.Port>}
  */
 const connections: Record<number, chrome.runtime.Port> = {};
-const cache: Record<number, Message["payload"]> = {};
+const cache: Record<number, BridgeSnapshot> = {};
 /**
  * List of allowed message sources that are permitted to communicate with the background script.
  * @type {string[]}
@@ -30,6 +30,12 @@ const handleConnection = (port: chrome.runtime.Port) => {
 
       return;
     }
+
+    if (message.source === "react-map-panel" && message.payload !== "init") {
+      chrome.tabs.sendMessage(tabId, message);
+      return;
+    }
+
     console.log(message.payload);
   };
 
@@ -70,13 +76,31 @@ const handleMessage = (
     message.source === "react-map-content-script" &&
     senderTabId !== undefined
   ) {
-    cache[senderTabId] = message.payload;
+    const payload = message.payload as unknown as BackendPayload;
+    const existingSnapshot = cache[senderTabId] ?? {
+      tree: null,
+      lockedNode: null,
+      lockedNodePath: null,
+    };
+
+    if (payload.mode === "tree-minimal") {
+      cache[senderTabId] = {
+        tree: payload.tree,
+        lockedNode: existingSnapshot.lockedNode,
+        lockedNodePath: existingSnapshot.lockedNodePath,
+      };
+    } else {
+      cache[senderTabId] = {
+        ...existingSnapshot,
+        lockedNode: payload.node,
+        lockedNodePath: payload.nodePath,
+      };
+    }
 
     if (senderTabId in connections) {
-      const currentFiberNode = message.payload;
       connections[senderTabId].postMessage({
         source: "react-map-backend",
-        payload: currentFiberNode,
+        payload: cache[senderTabId],
       });
       return;
     }

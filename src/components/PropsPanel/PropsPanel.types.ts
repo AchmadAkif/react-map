@@ -1,5 +1,5 @@
-import type { TreeNodeDatum } from "react-d3-tree";
+import type { InspectableNode } from "../../types";
 
 export type PropsPanelProps = {
-  hoveredNode: TreeNodeDatum | null | undefined;
+  hoveredNode: InspectableNode;
 };

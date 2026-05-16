@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
 import {
   ResizableHandle,
@@ -11,17 +11,27 @@ import { filterTreeData } from "../../utils";
 
 import { Tree as TreeType } from "react-d3-tree";
 import {
+  type InspectableNode,
   type TreeFilters,
   type TreeOrientation,
   type NodeSpacing,
   type RenderedNode,
 } from "../../types";
 
-const Main = ({ data }: { data: RawNodeDatum }) => {
+const Main = ({
+  data,
+  lockedNodeData,
+  lockedNodePath,
+  onLockNodeChange,
+}: {
+  data: RawNodeDatum;
+  lockedNodeData?: InspectableNode;
+  lockedNodePath?: string | null;
+  onLockNodeChange: (nodePath: string | null) => void;
+}) => {
   const treeRef = useRef<TreeType>(null);
   const [searchValue, setSearchValue] = useState<string>("");
   const [selectedValue, setSelectedValue] = useState<string>("");
-  const [selectedNode, setSelectedNode] = useState<RenderedNode | null>(null);
   const [renderedNodeData, setRenderedNodeData] = useState<
     { value: string; label: string; nodePointer: RenderedNode }[]
   >([]);
@@ -68,7 +78,8 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
   const handleRenderedTreeData = (data: RenderedNode[]) => {
     const filterData = data.map((node) => {
       return {
-        value: node.data.__rd3t.id,
+        value:
+          (node.data as { nodePath?: string }).nodePath ?? node.data.__rd3t.id,
         label: node.data.name,
         nodePointer: node,
       };
@@ -79,12 +90,18 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
 
   const handleSelectedValueChange = (value: string) => {
     setSelectedValue(value);
-
-    const selectedNode =
-      renderedNodeData.find((node) => node.value === value)?.nodePointer ??
-      null;
-    setSelectedNode(selectedNode);
   };
+
+  const selectedNode = useMemo(
+    () =>
+      renderedNodeData.find((node) => node.value === selectedValue)
+        ?.nodePointer ?? null,
+    [renderedNodeData, selectedValue],
+  );
+
+  const isLockActive = lockedNodePath !== null;
+  const lockedNodeUnavailable = isLockActive && lockedNodeData === null;
+  const activeNode = isLockActive ? lockedNodeData : hoveredNode;
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -108,7 +125,10 @@ const Main = ({ data }: { data: RawNodeDatum }) => {
             onSetOrientation={handleSetOrientation}
             nodeSpacing={nodeSpacing}
             onNodeSpacingChange={handleNodeSpacingChange}
-            hoveredNode={hoveredNode}
+            hoveredNode={activeNode}
+            lockedNodeUnavailable={lockedNodeUnavailable}
+            lockedNodePath={lockedNodePath ?? null}
+            onLockNodeChange={onLockNodeChange}
             treeFilters={treeFilters}
             onFilterChange={handleFilterChange}
             searchValue={searchValue}
