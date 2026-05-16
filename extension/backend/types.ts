@@ -4,18 +4,26 @@ export type SerializedFiberNode = RawNodeDatum & {
   nodePath: string;
 };
 
-export type TreeSnapshotMessage = {
-  mode: "tree";
-  tree: SerializedFiberNode | null;
+export type MinimalFiberNode = RawNodeDatum & {
+  nodePath: string;
+  state?: undefined;
+  props?: undefined;
 };
 
-export type LockedNodeSnapshotMessage = {
-  mode: "locked-node";
+export type TreeMinimalSnapshotMessage = {
+  mode: "tree-minimal";
+  tree: MinimalFiberNode | null;
+};
+
+export type NodeDetailSnapshotMessage = {
+  mode: "node-detail";
   node: SerializedFiberNode | null;
   nodePath: string | null;
 };
 
-export type BackendPayload = TreeSnapshotMessage | LockedNodeSnapshotMessage;
+export type BackendPayload =
+  | TreeMinimalSnapshotMessage
+  | NodeDetailSnapshotMessage;
 
 export type PanelCommand =
   | {
@@ -27,7 +35,7 @@ export type PanelCommand =
     };
 
 export type BridgeSnapshot = {
-  tree: SerializedFiberNode | null;
+  tree: MinimalFiberNode | null;
   lockedNode: SerializedFiberNode | null;
   lockedNodePath: string | null;
 };

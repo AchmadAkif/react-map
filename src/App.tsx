@@ -17,6 +17,9 @@ function App() {
   const [currentFiberTree, setCurrentFiberTree] = useState<RawNodeDatum | null>(
     null,
   );
+  const [nodeDetailCache, setNodeDetailCache] = useState<
+    Record<string, RawNodeDatum>
+  >({});
   const [lockedNodeData, setLockedNodeData] = useState<RawNodeDatum | null>(
     null,
   );
@@ -60,13 +63,25 @@ function App() {
           setCurrentFiberTree(fiberSnapshot.tree);
           setStatus("success");
           setStatusMessage("");
-          setLockedNodeData(fiberSnapshot.lockedNode);
-          setLockedNodePath(fiberSnapshot.lockedNodePath);
-        } else if (fiberSnapshot.lockedNode) {
-          setLockedNodeData(fiberSnapshot.lockedNode);
-          setLockedNodePath(fiberSnapshot.lockedNodePath);
-          setStatus("success");
-          setStatusMessage("");
+        }
+
+        const lockedNodePath = fiberSnapshot.lockedNodePath;
+        if (typeof lockedNodePath === "string") {
+          const lockedNode = fiberSnapshot.lockedNode;
+          if (lockedNode) {
+            setNodeDetailCache((prev) => ({
+              ...prev,
+              [lockedNodePath]: lockedNode as RawNodeDatum,
+            }));
+            setLockedNodeData(lockedNode);
+          } else {
+            setLockedNodeData(null);
+          }
+
+          setLockedNodePath(lockedNodePath);
+        } else if (fiberSnapshot.tree) {
+          setLockedNodeData((prev) => prev);
+          setLockedNodePath((prev) => prev);
         } else {
           setCurrentFiberTree(null);
           setStatus("no-react");
@@ -95,31 +110,35 @@ function App() {
     portRef.current = createdPort;
   }, [clearConnectionTimeout]);
 
-  const handleLockNodeChange = useCallback((nodePath: string | null) => {
-    if (!portRef.current) {
-      return;
-    }
+  const handleLockNodeChange = useCallback(
+    (nodePath: string | null) => {
+      if (!portRef.current) {
+        return;
+      }
 
-    if (nodePath === null) {
-      setLockedNodeData(null);
-      setLockedNodePath(null);
-    } else {
-      setLockedNodePath(nodePath);
-    }
+      if (nodePath === null) {
+        setLockedNodeData(null);
+        setLockedNodePath(null);
+      } else {
+        setLockedNodePath(nodePath);
+        setLockedNodeData(nodeDetailCache[nodePath] ?? null);
+      }
 
-    portRef.current.postMessage({
-      source: "react-map-panel",
-      payload:
-        nodePath === null
-          ? {
-              type: "unlock-node",
-            }
-          : {
-              type: "lock-node",
-              nodePath,
-            },
-    });
-  }, []);
+      portRef.current.postMessage({
+        source: "react-map-panel",
+        payload:
+          nodePath === null
+            ? {
+                type: "unlock-node",
+              }
+            : {
+                type: "lock-node",
+                nodePath,
+              },
+      });
+    },
+    [nodeDetailCache],
+  );
 
   useEffect(() => {
     bootstrapTimerRef.current = window.setTimeout(() => {

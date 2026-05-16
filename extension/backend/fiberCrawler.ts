@@ -1,7 +1,7 @@
 import * as utils from "./utils";
 
 import type { Fiber } from "./reactInternal.types";
-import type { SerializedFiberNode } from "./types";
+import type { MinimalFiberNode, SerializedFiberNode } from "./types";
 
 const buildNodePath = (parentPath: string, childIndex: number) => {
   if (!parentPath) {
@@ -73,6 +73,73 @@ export const traverseFiber = (
   }
 
   return treeData;
+};
+
+export const traverseFiberMinimal = (
+  node: Fiber | null,
+  nodePath = "",
+): MinimalFiberNode | null => {
+  if (!node) return null;
+
+  if (node.tag === 3 || node.tag === 8) {
+    let child = node.child;
+    while (child) {
+      const treeChild = traverseFiberMinimal(child, nodePath);
+      if (treeChild) {
+        return treeChild;
+      }
+      child = child.sibling;
+    }
+    return null;
+  }
+
+  const treeData: MinimalFiberNode = {
+    name: utils.getComponentName(node),
+    attributes: {
+      nodeType: utils.getMetadataLabel(node.tag),
+    },
+    children: [],
+    isDOM: node.tag === 5,
+    nodePath,
+  };
+
+  let serializedChildIndex = 0;
+  let child = node.child;
+  while (child) {
+    if (node.tag === 5 && child.tag === 6) {
+      child = child.sibling;
+      continue;
+    }
+
+    const childPath = buildNodePath(nodePath, serializedChildIndex);
+    const treeChild = traverseFiberMinimal(child, childPath);
+    if (treeChild) {
+      const children = treeData.children ?? (treeData.children = []);
+      children.push(treeChild);
+      serializedChildIndex += 1;
+    }
+    child = child.sibling;
+  }
+
+  return treeData;
+};
+
+export const serializeNodeDetail = (
+  node: Fiber | null,
+  nodePath: string,
+): SerializedFiberNode | null => {
+  if (!node) return null;
+
+  return {
+    name: utils.getComponentName(node),
+    attributes: {
+      nodeType: utils.getMetadataLabel(node.tag),
+    },
+    isDOM: node.tag === 5,
+    state: utils.getComponentHooks(node),
+    props: utils.getComponentProps(node),
+    nodePath,
+  };
 };
 
 export const findFiberByNodePath = (

@@ -83,11 +83,11 @@ const handleMessage = (
       lockedNodePath: null,
     };
 
-    if (payload.mode === "tree") {
+    if (payload.mode === "tree-minimal") {
       cache[senderTabId] = {
         tree: payload.tree,
-        lockedNode: null,
-        lockedNodePath: null,
+        lockedNode: existingSnapshot.lockedNode,
+        lockedNodePath: existingSnapshot.lockedNodePath,
       };
     } else {
       cache[senderTabId] = {
