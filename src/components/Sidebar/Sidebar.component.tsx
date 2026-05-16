@@ -20,7 +20,7 @@ const Sidebar = ({
   renderedNodeData,
 }: SidebarProps) => {
   return (
-    <div className="min-w-md h-full overflow-y-auto py-3 shadow-md">
+    <div className="h-full overflow-y-auto py-3 shadow-md">
       <SearchBar
         items={renderedNodeData}
         searchValue={searchValue}
