@@ -208,3 +208,36 @@ export const findNodeById = (
 
   return traverse(root);
 };
+
+export const findNodeByPath = (
+  nodePath: string,
+  treeData: RawNodeDatum[] | null,
+): RawNodeDatum | null => {
+  if (!treeData || treeData.length === 0) {
+    return null;
+  }
+
+  const traverse = (node: RawNodeDatum): RawNodeDatum | null => {
+    if ((node as { nodePath?: string }).nodePath === nodePath) {
+      return node;
+    }
+
+    for (const child of node.children ?? []) {
+      const found = traverse(child);
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
+  };
+
+  for (const root of treeData) {
+    const found = traverse(root);
+    if (found) {
+      return found;
+    }
+  }
+
+  return null;
+};

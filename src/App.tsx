@@ -3,7 +3,7 @@ import { MainContainer } from "./containers";
 import ErrorPage from "./containers/Error/Error.container";
 import { Spinner } from "./components/ui/spinner";
 
-import type { Message } from "../extension/backend/types";
+import type { BridgeSnapshot, Message } from "../extension/backend/types";
 import type { RawNodeDatum } from "react-d3-tree";
 
 type PanelStatus = "success" | "loading" | "error" | "no-react";
@@ -17,6 +17,13 @@ function App() {
   const [currentFiberTree, setCurrentFiberTree] = useState<RawNodeDatum | null>(
     null,
   );
+  const [nodeDetailCache, setNodeDetailCache] = useState<
+    Record<string, RawNodeDatum>
+  >({});
+  const [lockedNodeData, setLockedNodeData] = useState<RawNodeDatum | null>(
+    null,
+  );
+  const [lockedNodePath, setLockedNodePath] = useState<string | null>(null);
   const [status, setStatus] = useState<PanelStatus>("loading");
   const [statusMessage, setStatusMessage] = useState(
     "Waiting for a React tree from the inspected page.",
@@ -51,11 +58,30 @@ function App() {
       ) {
         clearConnectionTimeout();
 
-        const fiberTree = message.payload;
-        if (fiberTree) {
-          setCurrentFiberTree(fiberTree);
+        const fiberSnapshot = message.payload as unknown as BridgeSnapshot;
+        if (fiberSnapshot.tree) {
+          setCurrentFiberTree(fiberSnapshot.tree);
           setStatus("success");
           setStatusMessage("");
+        }
+
+        const lockedNodePath = fiberSnapshot.lockedNodePath;
+        if (typeof lockedNodePath === "string") {
+          const lockedNode = fiberSnapshot.lockedNode;
+          if (lockedNode) {
+            setNodeDetailCache((prev) => ({
+              ...prev,
+              [lockedNodePath]: lockedNode as RawNodeDatum,
+            }));
+            setLockedNodeData(lockedNode);
+          } else {
+            setLockedNodeData(null);
+          }
+
+          setLockedNodePath(lockedNodePath);
+        } else if (fiberSnapshot.tree) {
+          setLockedNodeData((prev) => prev);
+          setLockedNodePath((prev) => prev);
         } else {
           setCurrentFiberTree(null);
           setStatus("no-react");
@@ -84,6 +110,36 @@ function App() {
     portRef.current = createdPort;
   }, [clearConnectionTimeout]);
 
+  const handleLockNodeChange = useCallback(
+    (nodePath: string | null) => {
+      if (!portRef.current) {
+        return;
+      }
+
+      if (nodePath === null) {
+        setLockedNodeData(null);
+        setLockedNodePath(null);
+      } else {
+        setLockedNodePath(nodePath);
+        setLockedNodeData(nodeDetailCache[nodePath] ?? null);
+      }
+
+      portRef.current.postMessage({
+        source: "react-map-panel",
+        payload:
+          nodePath === null
+            ? {
+                type: "unlock-node",
+              }
+            : {
+                type: "lock-node",
+                nodePath,
+              },
+      });
+    },
+    [nodeDetailCache],
+  );
+
   useEffect(() => {
     bootstrapTimerRef.current = window.setTimeout(() => {
       connectToBridge();
@@ -108,7 +164,14 @@ function App() {
   };
 
   if (status === "success" && currentFiberTree) {
-    return <MainContainer data={currentFiberTree} />;
+    return (
+      <MainContainer
+        data={currentFiberTree}
+        lockedNodeData={lockedNodeData}
+        lockedNodePath={lockedNodePath}
+        onLockNodeChange={handleLockNodeChange}
+      />
+    );
   } else if (status === "loading") {
     return (
       <div className="h-screen flex items-center justify-center">
