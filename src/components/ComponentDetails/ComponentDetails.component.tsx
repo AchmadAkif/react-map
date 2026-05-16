@@ -61,10 +61,20 @@ const ComponentDetails = ({
           {isLocked ? "Unpin" : "Pin this node for live updates"}
         </Toggle>
       </div>
-      <Separator className="mb-2" />
-      <StatePanel hoveredNode={hoveredNode} />
-      <Separator className="my-2" />
-      <PropsPanel hoveredNode={hoveredNode} />
+      <p className="px-4 pb-2 text-xs text-slate-500 dark:text-slate-400">
+        {isLocked
+          ? "Live updates are enabled for the pinned node."
+          : "State and props load only after you pin a node."}
+      </p>
+
+      {isLocked && !lockedNodeUnavailable ? (
+        <>
+          <Separator className="mb-2" />
+          <StatePanel hoveredNode={hoveredNode} />
+          <Separator className="my-2" />
+          <PropsPanel hoveredNode={hoveredNode} />
+        </>
+      ) : null}
     </div>
   );
 };

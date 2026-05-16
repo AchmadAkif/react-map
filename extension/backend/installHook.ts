@@ -1,10 +1,14 @@
 import { debounce } from "./utils";
-import { findFiberByNodePath, traverseFiber } from "./fiberCrawler";
+import {
+  findFiberByNodePath,
+  serializeNodeDetail,
+  traverseFiberMinimal,
+} from "./fiberCrawler";
 import type { FiberRoot } from "./reactInternal.types";
 import type {
   BackendPayload,
-  LockedNodeSnapshotMessage,
-  TreeSnapshotMessage,
+  NodeDetailSnapshotMessage,
+  TreeMinimalSnapshotMessage,
 } from "./types";
 
 const isReactMapDebugMode =
@@ -40,23 +44,23 @@ const postSnapshot = (payload: BackendPayload) => {
 };
 
 const sendTreeSnapshot = (root: FiberRoot) => {
-  const serializedNode = traverseFiber(root.current);
+  const serializedNode = traverseFiberMinimal(root.current);
 
   postSnapshot({
-    mode: "tree",
+    mode: "tree-minimal",
     tree: serializedNode,
-  } satisfies TreeSnapshotMessage);
+  } satisfies TreeMinimalSnapshotMessage);
 };
 
 const sendLockedNodeSnapshot = (root: FiberRoot, nodePath: string) => {
   const lockedFiberNode = findFiberByNodePath(root.current, nodePath);
-  const serializedNode = traverseFiber(lockedFiberNode, nodePath);
+  const serializedNode = serializeNodeDetail(lockedFiberNode, nodePath);
 
   postSnapshot({
-    mode: "locked-node",
+    mode: "node-detail",
     node: serializedNode,
     nodePath,
-  } satisfies LockedNodeSnapshotMessage);
+  } satisfies NodeDetailSnapshotMessage);
 };
 
 window.addEventListener("message", (event) => {
@@ -95,9 +99,11 @@ window.addEventListener("message", (event) => {
   if (message.payload.type === "unlock-node") {
     activeLockedNodePath = null;
 
-    if (latestCommittedRoot) {
-      sendTreeSnapshot(latestCommittedRoot);
-    }
+    postSnapshot({
+      mode: "node-detail",
+      node: null,
+      nodePath: null,
+    } satisfies NodeDetailSnapshotMessage);
   }
 });
 
@@ -120,12 +126,11 @@ window.addEventListener("message", (event) => {
       try {
         latestCommittedRoot = root;
 
+        sendTreeSnapshot(root);
+
         if (activeLockedNodePath) {
           sendLockedNodeSnapshot(root, activeLockedNodePath);
-          return;
         }
-
-        sendTreeSnapshot(root);
       } catch (error) {
         console.error("[React-Map] Error: ", error);
         return;
