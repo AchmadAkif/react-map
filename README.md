@@ -10,14 +10,14 @@ This project is being developed to fulfill the requirements for my bachelor's de
 
 `react-map` works by tapping into the React Devtools global hook (`__REACT_DEVTOOLS_GLOBAL_HOOK__`). By patching this hook, it can intercept information about your React application's component structure, including the fiber tree, and use it to render a visual map. This allows you to "see" your app's architecture at a glance.
 
+---
+
 ## Installation
 
 ### Prerequisites
 
 **IMPORTANT:** `react-map` relies on the official **React Developer Tools** extension to intercept the fiber tree. Please ensure it is installed and enabled in your browser before proceeding:
 * [React DevTools for Chrome](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbhfbcabpbmnoobm)
-
----
 
 ### 💻 Standard Installation (Recommended)
 
@@ -26,8 +26,6 @@ The easiest way to use `react-map` is to install it directly from the official s
 1. Visit the [React-Map page on the Chrome Web Store](https://chromewebstore.google.com/detail/react-map/oeainfdgfdepkmpelemllinkpfiohglo).
 2. Click **"Add to Chrome"**.
 3. Once the installation is complete, the tool will automatically integrate into your browser's Developer Tools.
-
----
 
 ### 🛠️ For Contributors & Local Development (Manual Installation)
 
@@ -55,6 +53,8 @@ If you want to run the latest cutting-edge code from source, modify the extensio
 ### Firefox
 
 *(Not yet available. Will be added in the future)*
+
+---
 
 ## Usage
 
