@@ -12,33 +12,47 @@ This project is being developed to fulfill the requirements for my bachelor's de
 
 ## Installation
 
-As the extension is in development, it is not yet available on the Chrome Web Store or Firefox Add-ons Marketplace. To use it, you'll need to install it manually.
-
 ### Prerequisites
 
 **IMPORTANT:** `react-map` relies on the official **React Developer Tools** extension to intercept the fiber tree. Please ensure it is installed and enabled in your browser before proceeding:
-* [React DevTools for Chrome](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
-  
-### For Chrome
+* [React DevTools for Chrome](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbhfbcabpbmnoobm)
+
+---
+
+### 💻 Standard Installation (Recommended)
+
+The easiest way to use `react-map` is to install it directly from the official store:
+
+1. Visit the [React-Map page on the Chrome Web Store](https://chromewebstore.google.com/detail/react-map/oeainfdgfdepkmpelemllinkpfiohglo).
+2. Click **"Add to Chrome"**.
+3. Once the installation is complete, the tool will automatically integrate into your browser's Developer Tools.
+
+---
+
+### 🛠️ For Contributors & Local Development (Manual Installation)
+
+If you want to run the latest cutting-edge code from source, modify the extension, or contribute to development:
+
+### Chrome
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/AchmadAkif/react-map.git
+    git clone [https://github.com/AchmadAkif/react-map.git](https://github.com/AchmadAkif/react-map.git)
     ```
-2.  **Build the extension:**
+2.  **Build the extension locally:**
     ```bash
     cd react-map
     npm install
     npm run build
     ```
-    This will create a `dist` or `build` directory.
-3.  **Load the extension in your browser:**
-    *   Navigate to `chrome://extensions` (or `edge://extensions`).
-    *   Enable "Developer mode" (usually a toggle in the top-right).
-    *   Click on "Load unpacked".
-    *   Select the `dist` or `build` directory from the cloned repository.
+    This will compile the project into a production-ready `dist` or `build` directory.
+3.  **Load the unpacked extension:**
+    * Navigate to `chrome://extensions` in your browser.
+    * Enable **"Developer mode"** using the toggle switch in the top-right corner.
+    * Click the **"Load unpacked"** button in the top-left.
+    * Select the compiled `dist` or `build` directory from your cloned repository.
 
-### For Firefox
+### Firefox
 
 *(Not yet available. Will be added in the future)*
 
