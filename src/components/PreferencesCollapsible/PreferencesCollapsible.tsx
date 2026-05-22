@@ -25,7 +25,7 @@ export default function CollapsibleDemo({
   treeFilters,
   treeOrientation,
 }: PreferencesCollapsibleProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(true);
 
   return (
     <Collapsible
@@ -34,7 +34,7 @@ export default function CollapsibleDemo({
       className="flex flex-col gap-2 px-4"
     >
       <div className="flex items-center justify-between gap-4">
-        <h4 className="text-sm font-semibold">Preferences</h4>
+        <h4 className="text-sm font-semibold">Display Preferences</h4>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" size="icon" className="size-8">
             <ChevronsUpDown />
