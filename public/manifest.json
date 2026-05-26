@@ -19,6 +19,5 @@
       "matches": ["http://localhost/*", "https://localhost/*"]
     }
   ],
-  "permissions": ["tabs", "activeTab"],
   "host_permissions": ["http://localhost/*", "https://localhost/*"]
 }
