@@ -16,6 +16,8 @@ As the extension is in development, it is not yet available on the Chrome Web St
 
 ### Prerequisites
 
+**React Version:** React v16.8 or higher (requires React Fiber architecture and Hooks support).
+
 **IMPORTANT:** `react-map` relies on the official **React Developer Tools** extension to intercept the fiber tree. Please ensure it is installed and enabled in your browser before proceeding:
 * [React DevTools for Chrome](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
   
