@@ -2,6 +2,8 @@
 
 **A browser extension for visualizing your React application's component hierarchy in real-time.**
 
+<img width="1918" height="909" alt="Screenshot 2026-05-17 130342" src="https://github.com/user-attachments/assets/1a1aca36-2b1c-46e1-8d35-959c3bfc99fa" />
+
 This project is being developed to fulfill the requirements for my bachelor's degree. It's an extension that visualizes React components by patching the React Devtools global hook.
 
 ---
