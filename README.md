@@ -2,6 +2,8 @@
 
 **A browser extension for visualizing your React application's component hierarchy in real-time.**
 
+<img width="1918" height="909" alt="Screenshot 2026-05-17 130342" src="https://github.com/user-attachments/assets/1a1aca36-2b1c-46e1-8d35-959c3bfc99fa" />
+
 This project is being developed to fulfill the requirements for my bachelor's degree. It's an extension that visualizes React components by patching the React Devtools global hook.
 
 ---
@@ -15,6 +17,8 @@ This project is being developed to fulfill the requirements for my bachelor's de
 As the extension is in development, it is not yet available on the Chrome Web Store or Firefox Add-ons Marketplace. To use it, you'll need to install it manually.
 
 ### Prerequisites
+
+**React Version:** React v16.8 or higher (requires React Fiber architecture and Hooks support).
 
 **IMPORTANT:** `react-map` relies on the official **React Developer Tools** extension to intercept the fiber tree. Please ensure it is installed and enabled in your browser before proceeding:
 * [React DevTools for Chrome](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
