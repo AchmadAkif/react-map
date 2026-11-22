@@ -1,103 +1,59 @@
 import { useMemo, useRef, useState } from "react";
-import type { RawNodeDatum, TreeNodeDatum } from "react-d3-tree";
+import type { Tree as TreeType } from "react-d3-tree";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 
-import { HierarchyTree, Sidebar } from "../../components";
-import { filterTreeData } from "../../utils";
+import { HierarchyTree, Sidebar } from "@/components";
+import { filterTreeData } from "@/utils";
+import { useTreePreferences, useNodeSearch } from "@/hooks";
+import type { InspectableNode, TreeNode } from "@/types";
 
-import { Tree as TreeType } from "react-d3-tree";
-import {
-  type InspectableNode,
-  type TreeFilters,
-  type TreeOrientation,
-  type NodeSpacing,
-  type RenderedNode,
-} from "../../types";
+export interface MainContainerProps {
+  data: TreeNode;
+  lockedNodeData?: InspectableNode;
+  lockedNodePath?: string | null;
+  onLockNodeChange: (nodePath: string | null) => void;
+}
 
-const Main = ({
+export const MainContainer = ({
   data,
   lockedNodeData,
   lockedNodePath,
   onLockNodeChange,
-}: {
-  data: RawNodeDatum;
-  lockedNodeData?: InspectableNode;
-  lockedNodePath?: string | null;
-  onLockNodeChange: (nodePath: string | null) => void;
-}) => {
+}: MainContainerProps) => {
   const treeRef = useRef<TreeType>(null);
-  const [searchValue, setSearchValue] = useState<string>("");
-  const [selectedValue, setSelectedValue] = useState<string>("");
-  const [renderedNodeData, setRenderedNodeData] = useState<
-    { value: string; label: string; nodePointer: RenderedNode }[]
-  >([]);
-  const [treeOrientation, setTreeOrientation] =
-    useState<TreeOrientation>("vertical");
-  const [hoveredNode, setHoveredNode] = useState<TreeNodeDatum | null>(null);
-  const [nodeSpacing, setNodeSpacing] = useState<NodeSpacing>({
-    x: 200,
-    y: 200,
-  });
-  const [treeFilters, setTreeFilters] = useState<TreeFilters>({
-    hideRouterComponent: false,
-    hideDomComponent: false,
-    hideReduxComponent: false,
-  });
+  const [hoveredNode, setHoveredNode] = useState<TreeNode | null>(null);
+
+  const {
+    treeOrientation,
+    nodeSpacing,
+    treeFilters,
+    handleSetOrientation,
+    handleNodeSpacingChange,
+    handleFilterChange,
+  } = useTreePreferences();
+
+  const {
+    searchValue,
+    setSearchValue,
+    selectedValue,
+    setSelectedValue,
+    renderedNodeData,
+    selectedNode,
+    handleRenderedTreeData,
+  } = useNodeSearch();
 
   const filteredTreeData = useMemo(
     () => filterTreeData(data, treeFilters),
     [data, treeFilters],
   );
 
-  const handleSetOrientation = (orientation: TreeOrientation) => {
-    setTreeOrientation(orientation);
-  };
-
-  const handleNodeSpacingChange = (value: number, axis: "x" | "y") => {
-    setNodeSpacing((prev) => ({ ...prev, [axis]: value }));
-  };
-
-  const handleFilterChange = (
-    filterName: keyof TreeFilters,
-    value: boolean,
-  ) => {
-    setTreeFilters((prev) => ({
-      ...prev,
-      [filterName]: value,
-    }));
-  };
-
-  const handleOnNodeHover = (node: TreeNodeDatum) => {
+  const handleOnNodeHover = (node: TreeNode) => {
     setHoveredNode(node);
   };
-
-  const handleRenderedTreeData = (data: RenderedNode[]) => {
-    const filterData = data.map((node) => {
-      return {
-        value:
-          (node.data as { nodePath?: string }).nodePath ?? node.data.__rd3t.id,
-        label: node.data.name,
-        nodePointer: node,
-      };
-    });
-
-    setRenderedNodeData(filterData);
-  };
-
-  const handleSelectedValueChange = (value: string) => {
-    setSelectedValue(value);
-  };
-
-  const selectedNode = useMemo(
-    () =>
-      renderedNodeData.find((node) => node.value === selectedValue)
-        ?.nodePointer ?? null,
-    [renderedNodeData, selectedValue],
-  );
 
   const isLockActive = typeof lockedNodePath === "string";
   const lockedNodeUnavailable = isLockActive && lockedNodeData === null;
@@ -134,7 +90,7 @@ const Main = ({
             searchValue={searchValue}
             onSearchValueChange={setSearchValue}
             selectedValue={selectedValue}
-            onSelectedValueChange={handleSelectedValueChange}
+            onSelectedValueChange={setSelectedValue}
             renderedNodeData={renderedNodeData}
           />
         </ResizablePanel>
@@ -142,5 +98,3 @@ const Main = ({
     </div>
   );
 };
-
-export default Main;

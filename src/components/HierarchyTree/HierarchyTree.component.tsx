@@ -1,9 +1,9 @@
-import { useRef, useState, useLayoutEffect, useEffect } from "react";
+import { useMemo, useRef, useState, useLayoutEffect, useEffect } from "react";
 import Tree from "react-d3-tree";
-
+import { toRawNodeDatum } from "@/types/treeAdapter";
 import type { HierarchyTreeProps } from "./HierarchyTree.types";
 
-export default function HierarchyTree({
+export function HierarchyTree({
   treeRef,
   data,
   treeOrientation,
@@ -36,7 +36,10 @@ export default function HierarchyTree({
     }
   }, [selectedNode, treeRef]);
 
-  if (!data) {
+  // Convert domain TreeNode to RawNodeDatum format only at the visualization boundary
+  const rawNodeData = useMemo(() => toRawNodeDatum(data), [data]);
+
+  if (!rawNodeData) {
     return (
       <div
         id="treeWrapper"
@@ -50,21 +53,20 @@ export default function HierarchyTree({
   }
 
   return (
-    // `<Tree />` will fill width/height of its container; in this case `#treeWrapper`.
     <div ref={containerRef} id="treeWrapper" className="h-screen w-full">
       <Tree
         ref={treeRef}
-        data={data}
+        data={rawNodeData}
         orientation={treeOrientation}
         nodeSize={nodeSize}
         onNodeMouseOver={(node) => {
-          if (handleOnNodeHover) handleOnNodeHover(node.data);
+          if (handleOnNodeHover) handleOnNodeHover(node.data as unknown as import("@/types").TreeNode);
         }}
         dimensions={
           containerRect
             ? {
-                height: containerRect?.height,
-                width: containerRect?.width,
+                height: containerRect.height,
+                width: containerRect.width,
               }
             : undefined
         }

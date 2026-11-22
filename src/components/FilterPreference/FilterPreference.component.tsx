@@ -1,8 +1,7 @@
 import { Checkbox } from "../ui/checkbox";
-
 import type { FilterPreferenceProps } from "./FilterPreference.types";
 
-const FilterPreference = ({
+export const FilterPreference = ({
   treeFilters,
   handleFilterChange,
 }: FilterPreferenceProps) => {
@@ -41,5 +40,3 @@ const FilterPreference = ({
     </div>
   );
 };
-
-export default FilterPreference;

@@ -1,1 +1,2 @@
-export { default as PropsPanel } from "./PropsPanel.component";
+export { PropsPanel } from "./PropsPanel.component";
+export type { PropsPanelProps } from "./PropsPanel.types";

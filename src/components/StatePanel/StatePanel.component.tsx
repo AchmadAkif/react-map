@@ -1,9 +1,8 @@
-import { getValueTypeClass, renderValue } from "../../utils";
-import StateBadge from "../StateBadge";
-
+import { getValueTypeClass, renderValue } from "@/utils";
+import { StateBadge } from "../StateBadge";
 import type { StatePanelProps } from "./StatePanel.types";
 
-const StatePanel = ({ hoveredNode }: StatePanelProps) => {
+export const StatePanel = ({ hoveredNode }: StatePanelProps) => {
   const hooks = hoveredNode?.state;
   return (
     <div className="flex flex-col px-4">
@@ -32,5 +31,3 @@ const StatePanel = ({ hoveredNode }: StatePanelProps) => {
     </div>
   );
 };
-
-export default StatePanel;

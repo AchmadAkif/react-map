@@ -5,7 +5,7 @@ import { PreferencesCollapsible } from "../PreferencesCollapsible";
 
 import type { SidebarProps } from "./Sidebar.types";
 
-const Sidebar = ({
+export const Sidebar = ({
   treeOrientation,
   onSetOrientation,
   nodeSpacing,
@@ -42,7 +42,7 @@ const Sidebar = ({
       />
       <Separator className="my-2" />
       <ComponentDetails
-        hoveredNode={hoveredNode}
+        hoveredNode={hoveredNode ?? null}
         lockedNodeUnavailable={lockedNodeUnavailable}
         lockedNodePath={lockedNodePath}
         onLockNodeChange={onLockNodeChange}
@@ -50,5 +50,3 @@ const Sidebar = ({
     </div>
   );
 };
-
-export default Sidebar;

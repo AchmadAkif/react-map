@@ -1,1 +1,2 @@
-export { default as SpacingPreference } from "./SpacingPreference.component";
+export { SpacingPreference } from "./SpacingPreference.component";
+export type { SpacingPreferenceProps } from "./SpacingPreference.types";

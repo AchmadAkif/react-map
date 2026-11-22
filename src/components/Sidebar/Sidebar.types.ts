@@ -1,5 +1,4 @@
-import type { TreeFilters, TreeOrientation, NodeSpacing } from "../../types";
-import type { InspectableNode } from "../../types";
+import type { InspectableNode, NodeSpacing, TreeFilters, TreeOrientation } from "../../types";
 
 export interface SidebarProps {
   treeOrientation: TreeOrientation;

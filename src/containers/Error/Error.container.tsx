@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 
-type ErrorPageProps = {
+export type ErrorPageProps = {
   title: string;
   message: string;
   actionLabel?: string;
   onAction?: () => void;
 };
 
-const Error = ({
+export const ErrorPage = ({
   title,
   message,
   actionLabel = "Retry",
@@ -37,5 +37,3 @@ const Error = ({
     </div>
   );
 };
-
-export default Error;

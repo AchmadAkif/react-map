@@ -1,13 +1,13 @@
 import type { Ref } from "react";
-import type { RawNodeDatum, TreeNodeDatum, Tree } from "react-d3-tree";
-import type { NodeSpacing, RenderedNode, TreeFilters } from "../../types";
+import type { Tree } from "react-d3-tree";
+import type { NodeSpacing, RenderedNode, TreeFilters, TreeNode } from "../../types";
 
 export interface HierarchyTreeProps {
   treeRef: Ref<Tree>;
-  data: RawNodeDatum | null;
+  data: TreeNode | null;
   treeOrientation: "vertical" | "horizontal";
   nodeSize: NodeSpacing;
-  handleOnNodeHover?: (node: TreeNodeDatum) => void;
+  handleOnNodeHover?: (node: TreeNode) => void;
   treeFilters: TreeFilters;
   onRenderedTreeData: (data: RenderedNode[]) => void;
   selectedNode: RenderedNode | null;

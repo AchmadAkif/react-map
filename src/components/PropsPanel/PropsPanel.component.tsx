@@ -1,9 +1,7 @@
-// import { renderValue } from "../../utils";
-
 import { getValueTypeClass, renderValue } from "@/utils";
 import type { PropsPanelProps } from "./PropsPanel.types";
 
-const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
+export const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
   const props = hoveredNode?.props ? hoveredNode.props : null;
   return (
     <div className="flex flex-col px-4">
@@ -23,5 +21,3 @@ const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
     </div>
   );
 };
-
-export default PropsPanel;

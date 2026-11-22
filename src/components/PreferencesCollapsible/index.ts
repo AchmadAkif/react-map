@@ -1,1 +1,2 @@
-export { default as PreferencesCollapsible } from "./PreferencesCollapsible";
+export { PreferencesCollapsible } from "./PreferencesCollapsible";
+export type { PreferencesCollapsibleProps } from "./PreferencesCollapsible";

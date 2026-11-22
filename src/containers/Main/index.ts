@@ -1,1 +1,2 @@
-export { default as MainContainer } from "./Main.container";
+export { MainContainer } from "./Main.container";
+export type { MainContainerProps } from "./Main.container";

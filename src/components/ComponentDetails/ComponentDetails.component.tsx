@@ -1,24 +1,16 @@
 import { PinIcon } from "lucide-react";
-
 import { Separator } from "../ui/separator";
 import { Toggle } from "../ui/toggle";
-
 import { StatePanel } from "../StatePanel";
 import { PropsPanel } from "../PropsPanel";
+import type { ComponentDetailsProps } from "./ComponentDetails.types";
 
-import type { InspectableNode } from "../../types";
-
-const ComponentDetails = ({
+export const ComponentDetails = ({
   hoveredNode,
   lockedNodeUnavailable,
   lockedNodePath,
   onLockNodeChange,
-}: {
-  hoveredNode: InspectableNode;
-  lockedNodeUnavailable?: boolean;
-  lockedNodePath: string | null;
-  onLockNodeChange: (nodePath: string | null) => void;
-}) => {
+}: ComponentDetailsProps) => {
   const isLocked = lockedNodePath !== null;
   const hoverNodePath = hoveredNode?.nodePath ?? null;
   const canLockHoveredNode = !isLocked && hoverNodePath !== null;
@@ -78,5 +70,3 @@ const ComponentDetails = ({
     </div>
   );
 };
-
-export default ComponentDetails;

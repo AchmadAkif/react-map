@@ -14,7 +14,7 @@ import { Input } from "../ui/input";
 import { Popover, PopoverAnchor, PopoverContent } from "../ui/popover";
 import { Skeleton } from "../ui/skeleton";
 
-type Props<T extends string> = {
+export type SearchBarProps<T extends string = string> = {
   selectedValue: T;
   onSelectedValueChange: (value: T) => void;
   searchValue: string;
@@ -25,7 +25,7 @@ type Props<T extends string> = {
   placeholder?: string;
 };
 
-export default function AutoComplete<T extends string>({
+export function SearchBar<T extends string = string>({
   selectedValue,
   onSelectedValueChange,
   searchValue,
@@ -34,7 +34,7 @@ export default function AutoComplete<T extends string>({
   isLoading,
   emptyMessage = "Cannot find node with that name.",
   placeholder = "Search node...",
-}: Props<T>) {
+}: SearchBarProps<T>) {
   const [open, setOpen] = useState(false);
 
   const labels = useMemo(
@@ -76,7 +76,6 @@ export default function AutoComplete<T extends string>({
   return (
     <div className="flex items-center">
       <Popover open={open} onOpenChange={setOpen}>
-        {/* Add the custom filter function */}
         <Command
           filter={(value, search) => {
             const currentLabel = items.find(
@@ -129,7 +128,6 @@ export default function AutoComplete<T extends string>({
               {items.length > 0 && !isLoading ? (
                 <CommandGroup>
                   {items.map((option) => (
-                    // Ensure value and key are the unique ID
                     <CommandItem
                       key={option.value}
                       value={option.value}

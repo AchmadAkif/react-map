@@ -1,9 +1,8 @@
 import { Input } from "../ui/input";
 import { Slider } from "../ui/slider";
-
 import type { SpacingPreferenceProps } from "./SpacingPreference.types";
 
-const SpacingPreference = ({
+export const SpacingPreference = ({
   nodeSpacing,
   handleNodeSpacingChange,
 }: SpacingPreferenceProps) => {
@@ -38,5 +37,3 @@ const SpacingPreference = ({
     </>
   );
 };
-
-export default SpacingPreference;
