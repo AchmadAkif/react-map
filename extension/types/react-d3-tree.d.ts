@@ -6,6 +6,7 @@ declare module "react-d3-tree" {
     state?: componentHook[] | null;
     props?: object | null;
     isDOM?: boolean | null;
+    nodePath?: string;
   }
 }
 

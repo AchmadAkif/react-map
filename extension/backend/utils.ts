@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Fiber } from "./reactInternal.types";
 import type { componentHook } from "../types";
-import { traverseFiber } from "./fiberCrawler";
 
 export const getMetadataLabel = (tag: number): string => {
   switch (tag) {
@@ -101,7 +100,7 @@ const handleHookValue = (
   if (depth > 10) return "[Max Depth Exceeded]";
 
   if (hookType === "State") {
-    if (val instanceof Node) {
+    if (typeof Node !== "undefined" && val instanceof Node) {
       const tagName = (val as HTMLElement).tagName?.toLowerCase() || "node";
       const id = (val as HTMLElement).id ? `#${(val as HTMLElement).id}` : "";
       return `<${tagName}${id}>`;
@@ -226,7 +225,7 @@ const handlePropValue = (val: any, visited = new WeakSet(), depth = 0): any => {
     visited.add(val);
     // If it's a React Element (circular and complex)
     if (val.$$typeof) {
-      const componentName = traverseFiber(val)?.name;
+      const componentName = getComponentName(val);
       return `<${componentName}/>`;
     }
 
