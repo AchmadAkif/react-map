@@ -206,6 +206,92 @@ describe("fiberCrawler", () => {
       expect(detail?.props).toEqual({ username: "Alice" });
       expect(detail?.isDOM).toBe(false);
     });
+
+    it("shows class component state by key", () => {
+      const fiber = createMockFiber({
+        tag: WorkTag.ClassComponent,
+        type: { displayName: "Counter" },
+        memoizedState: {
+          count: 5,
+          user: { name: "Alice" },
+          next: null,
+          error: undefined,
+          reset: () => {},
+        },
+      });
+
+      const detail = serializeNodeDetail(fiber, "0");
+      expect(detail?.classState).toEqual({
+        count: 5,
+        user: { name: "Alice" },
+        next: null,
+        // Keeps the key across the bridge, which drops undefined values.
+        error: "__react_map_undefined__",
+        reset: "ƒ()",
+      });
+      expect(detail).not.toHaveProperty("state");
+    });
+
+    it.each([
+      ["element", WorkTag.HostComponent, "div"],
+      ["hoistable element", WorkTag.HostHoistable, "link"],
+      ["singleton element", WorkTag.HostSingleton, "body"],
+    ])("shows only the props of a DOM %s", (_label, tag, type) => {
+      const detail = serializeNodeDetail(
+        createMockFiber({
+          tag,
+          type,
+          memoizedProps: { className: "main" },
+          // React may keep its own data here, which is not the node's state.
+          memoizedState: { memoizedState: null, queue: null, next: null },
+        }),
+        "0",
+      );
+
+      expect(detail?.props).toEqual({ className: "main" });
+      expect(detail).not.toHaveProperty("state");
+      expect(detail).not.toHaveProperty("classState");
+    });
+
+    it.each(["Hello", ""])("shows the text %j as a single value", (text) => {
+      const detail = serializeNodeDetail(
+        createMockFiber({
+          tag: WorkTag.HostText,
+          type: null,
+          elementType: null,
+          memoizedProps: text,
+        }),
+        "0",
+      );
+
+      expect(detail?.text).toBe(text);
+      expect(detail).not.toHaveProperty("props");
+      expect(detail).not.toHaveProperty("state");
+      expect(detail).not.toHaveProperty("classState");
+    });
+
+    it("keeps function component state as a list of hooks", () => {
+      const detail = serializeNodeDetail(
+        createMockFiber({
+          memoizedState: {
+            queue: { dispatch: () => {} },
+            memoizedState: 5,
+            next: {
+              queue: null,
+              memoizedState: { current: null },
+              next: null,
+            },
+          },
+        }),
+        "0",
+      );
+
+      expect(detail?.state).toEqual([
+        { index: 0, type: "State", value: 5 },
+        { index: 1, type: "Ref", value: "() => {}" },
+      ]);
+      expect(detail).not.toHaveProperty("classState");
+    });
   });
 
   describe("findFiberByNodePath", () => {

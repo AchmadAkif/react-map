@@ -4,10 +4,18 @@ export type SerializedFiberNode = RawNodeDatum & {
   nodePath: string;
 };
 
+/** The inspectable values of a node, as opposed to its place in the tree. */
+export type NodeDetails = Pick<
+  RawNodeDatum,
+  "state" | "classState" | "props" | "text"
+>;
+
 export type MinimalFiberNode = RawNodeDatum & {
   nodePath: string;
   state?: undefined;
+  classState?: undefined;
   props?: undefined;
+  text?: undefined;
 };
 
 export type TreeMinimalSnapshotMessage = {

@@ -23,8 +23,14 @@ export interface TreeNode {
   attributes?: Record<string, string | number | boolean>;
   children?: TreeNode[];
   isDOM?: boolean | null;
+  /** State hooks; missing when the node cannot have any. */
   state?: ComponentHook[] | null;
+  /** Class component state by key; missing on other nodes. */
+  classState?: Record<string, unknown> | null;
+  /** Missing on a text node. */
   props?: Record<string, unknown> | null;
+  /** Only on a text node. */
+  text?: string;
 }
 
 /** Points to a node that can be selected. */
@@ -33,6 +39,7 @@ export type NodeRef = { nodePath: string; name: string };
 export type InspectableNode = {
   name?: string;
   state?: ComponentHook[] | null;
+  classState?: Record<string, unknown> | null;
   props?: Record<string, unknown> | null;
   nodePath?: string;
 } | null;

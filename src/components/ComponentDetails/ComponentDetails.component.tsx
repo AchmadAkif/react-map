@@ -4,7 +4,35 @@ import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
 import { StatePanel } from "../StatePanel";
 import { PropsPanel } from "../PropsPanel";
-import type { ComponentDetailsProps } from "./ComponentDetails.types";
+import { TextPanel } from "../TextPanel";
+import type {
+  ComponentDetailsProps,
+  LiveDetailsProps,
+} from "./ComponentDetails.types";
+
+const LiveDetails = ({ details }: LiveDetailsProps) => {
+  const { state, classState, text } = details;
+  const hasStateSection = state !== undefined || classState !== undefined;
+
+  return (
+    <>
+      <Separator className="mb-2" />
+      {text !== undefined ? (
+        <TextPanel text={text} />
+      ) : (
+        <>
+          {hasStateSection && (
+            <>
+              <StatePanel selectedNode={details} />
+              <Separator className="my-2" />
+            </>
+          )}
+          <PropsPanel selectedNode={details} />
+        </>
+      )}
+    </>
+  );
+};
 
 export const ComponentDetails = ({
   selection,
@@ -51,12 +79,7 @@ export const ComponentDetails = ({
       )}
 
       {selection.status === "live" && (
-        <>
-          <Separator className="mb-2" />
-          <StatePanel selectedNode={selection.details} />
-          <Separator className="my-2" />
-          <PropsPanel selectedNode={selection.details} />
-        </>
+        <LiveDetails details={selection.details} />
       )}
     </div>
   );

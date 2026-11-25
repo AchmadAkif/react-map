@@ -1,5 +1,6 @@
 import { getValueTypeClass, renderValue } from "@/utils";
 import { StateBadge } from "../StateBadge";
+import { ValueList } from "../ValueList";
 import type { StatePanelProps } from "./StatePanel.types";
 
 export const StatePanel = ({ selectedNode }: StatePanelProps) => {
@@ -26,7 +27,7 @@ export const StatePanel = ({ selectedNode }: StatePanelProps) => {
             ))}
         </dl>
       ) : (
-        <p>None</p>
+        <ValueList values={selectedNode?.classState} />
       )}
     </div>
   );

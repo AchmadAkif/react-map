@@ -7,6 +7,8 @@ export * from "./PreferencesCollapsible";
 export * from "./PropsPanel";
 export * from "./StatePanel";
 export * from "./StateBadge";
+export * from "./TextPanel";
+export * from "./ValueList";
 export * from "./FilterPreference";
 export * from "./OrientationPreference";
 export * from "./SpacingPreference";

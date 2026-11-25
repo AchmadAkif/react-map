@@ -1,6 +1,6 @@
 import * as utils from "./utils";
 import { WorkTag, type Fiber } from "./reactInternal.types";
-import type { MinimalFiberNode, SerializedFiberNode } from "./types";
+import type { MinimalFiberNode, NodeDetails, SerializedFiberNode } from "./types";
 
 export interface TraverseOptions {
   includeDetails?: boolean;
@@ -19,6 +19,31 @@ export const buildNodePath = (
  */
 const isTransparentNode = (node: Fiber): boolean => {
   return node.tag === WorkTag.HostRoot || node.tag === WorkTag.Mode;
+};
+
+/**
+ * Reads the details that suit the kind of node. A detail that does not apply
+ * is left out, while one that applies but is empty is null.
+ */
+const getNodeDetails = (node: Fiber): NodeDetails => {
+  // React keeps a text node's text in place of its props object.
+  if (node.tag === WorkTag.HostText) return { text: node.memoizedProps };
+
+  const props = utils.getComponentProps(node);
+
+  switch (node.tag) {
+    case WorkTag.ClassComponent:
+    case WorkTag.IncompleteClassComponent:
+      return { classState: utils.getClassState(node), props };
+
+    case WorkTag.HostComponent:
+    case WorkTag.HostHoistable:
+    case WorkTag.HostSingleton:
+      return { props };
+
+    default:
+      return { state: utils.getComponentHooks(node), props };
+  }
 };
 
 /**
@@ -123,10 +148,7 @@ export const traverseFiber = (
     children: [],
     isDOM,
     nodePath,
-    ...(options.includeDetails && {
-      state: utils.getComponentHooks(node),
-      props: utils.getComponentProps(node),
-    }),
+    ...(options.includeDetails && getNodeDetails(node)),
   };
 
   const children = collectChildren(node, nodePath, options, isDOM);
@@ -150,7 +172,7 @@ export const traverseFiberMinimal = (
 };
 
 /**
- * Serializes state and props for the selected fiber node.
+ * Serializes the details of the selected fiber node.
  */
 export const serializeNodeDetail = (
   node: Fiber | null,
@@ -164,8 +186,7 @@ export const serializeNodeDetail = (
       nodeType: utils.getMetadataLabel(node.tag),
     },
     isDOM: node.tag === WorkTag.HostComponent,
-    state: utils.getComponentHooks(node),
-    props: utils.getComponentProps(node),
+    ...getNodeDetails(node),
     nodePath,
   };
 };
