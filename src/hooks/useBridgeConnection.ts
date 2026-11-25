@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import type {
-  BridgeSnapshot,
+  BackendPayload,
   Message,
   PanelCommand,
 } from "../../extension/backend/types";
@@ -57,20 +57,21 @@ export function useBridgeConnection() {
       ) {
         clearConnectionTimeout();
 
-        const fiberSnapshot = message.payload as unknown as BridgeSnapshot;
-        if (fiberSnapshot.tree) {
-          setCurrentFiberTree(fiberSnapshot.tree as unknown as TreeNode);
-          setStatus("success");
-          setStatusMessage("");
+        const payload = message.payload as unknown as BackendPayload;
+        if (payload.mode === "node-detail") {
+          dispatchSelection({
+            type: "details-received",
+            nodePath: payload.nodePath,
+            details: payload.node as unknown as TreeNode | null,
+          });
+          return;
         }
 
-        dispatchSelection({
-          type: "details-received",
-          nodePath: fiberSnapshot.selectedNodePath,
-          details: fiberSnapshot.selectedNode as unknown as TreeNode | null,
-        });
-
-        if (!fiberSnapshot.tree && fiberSnapshot.selectedNodePath === null) {
+        if (payload.tree) {
+          setCurrentFiberTree(payload.tree as unknown as TreeNode);
+          setStatus("success");
+          setStatusMessage("");
+        } else {
           setCurrentFiberTree(null);
           setStatus("no-react");
           setStatusMessage(

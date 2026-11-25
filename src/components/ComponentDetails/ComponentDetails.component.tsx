@@ -44,7 +44,7 @@ export const ComponentDetails = ({
         </div>
       )}
 
-      {selection.status === "missing" && (
+      {selection.status === "unmounted" && (
         <p className="mx-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-600 dark:text-amber-400">
           This node is no longer present in the React tree.
         </p>

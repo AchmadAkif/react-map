@@ -5,7 +5,7 @@ export type Selection =
   | { status: "none" }
   | ({ status: "loading" } & NodeRef)
   | ({ status: "live"; details: TreeNode } & NodeRef)
-  | ({ status: "missing" } & NodeRef);
+  | ({ status: "unmounted" } & NodeRef);
 
 export type SelectionEvent =
   | ({ type: "select" } & NodeRef)
@@ -52,7 +52,7 @@ export const nextSelection = (
 
       return details
         ? { status: "live", nodePath, name: details.name, details }
-        : { status: "missing", nodePath, name };
+        : { status: "unmounted", nodePath, name };
     }
   }
 };

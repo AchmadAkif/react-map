@@ -88,10 +88,11 @@ window.addEventListener("message", (event) => {
   }
 
   if (message.payload.type === "select-node") {
-    selectedNodePath = message.payload.nodePath;
+    const { nodePath } = message.payload;
+    selectedNodePath = nodePath;
 
-    if (latestCommittedRoot && selectedNodePath !== null) {
-      sendSelectedNodeSnapshot(latestCommittedRoot, selectedNodePath);
+    if (latestCommittedRoot) {
+      sendSelectedNodeSnapshot(latestCommittedRoot, nodePath);
     }
 
     return;

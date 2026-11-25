@@ -22,8 +22,8 @@ const liveCounter: Selection = {
   details: counterDetails,
 };
 
-const missingCounter: Selection = {
-  status: "missing",
+const unmountedCounter: Selection = {
+  status: "unmounted",
   nodePath: "0/1",
   name: "Counter",
 };
@@ -76,9 +76,9 @@ describe("selection rules", () => {
       ).toEqual(liveCounter);
     });
 
-    it("loads again when a missing node's path is selected again", () => {
+    it("loads again when an unmounted node's path is selected again", () => {
       expect(
-        nextSelection(missingCounter, {
+        nextSelection(unmountedCounter, {
           type: "select",
           nodePath: "0/1",
           name: "Header",
@@ -172,14 +172,14 @@ describe("selection rules", () => {
       ).toEqual({ status: "none" });
     });
 
-    it("marks a node that is no longer found as missing", () => {
+    it("marks a node that is no longer found as unmounted", () => {
       expect(
         nextSelection(liveCounter, {
           type: "details-received",
           nodePath: "0/1",
           details: null,
         }),
-      ).toEqual(missingCounter);
+      ).toEqual(unmountedCounter);
     });
   });
 });

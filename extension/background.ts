@@ -12,6 +12,10 @@ const cache: Record<number, BridgeSnapshot> = {};
  */
 const allowedMsgSources = ["react-map-content-script"];
 
+const postToPanel = (port: chrome.runtime.Port, payload: BackendPayload) => {
+  port.postMessage({ source: "react-map-backend", payload });
+};
+
 const handleConnection = (port: chrome.runtime.Port) => {
   const tabId = Number(port.name);
 
@@ -22,9 +26,12 @@ const handleConnection = (port: chrome.runtime.Port) => {
 
       const cachedPayload = cache[tabId];
       if (cachedPayload !== undefined) {
-        port.postMessage({
-          source: "react-map-backend",
-          payload: cachedPayload,
+        const { tree, selectedNode, selectedNodePath } = cachedPayload;
+        postToPanel(port, { mode: "tree-minimal", tree });
+        postToPanel(port, {
+          mode: "node-detail",
+          node: selectedNode,
+          nodePath: selectedNodePath,
         });
       }
 
@@ -102,10 +109,9 @@ const handleMessage = (
     }
 
     if (senderTabId in connections) {
-      connections[senderTabId].postMessage({
-        source: "react-map-backend",
-        payload: cache[senderTabId],
-      });
+      // Forward only what changed: resending the tree with every detail would
+      // reset the drawn tree, and resending cached details could be stale.
+      postToPanel(connections[senderTabId], payload);
       return;
     }
     return;

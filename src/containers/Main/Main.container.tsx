@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import type { Tree as TreeType } from "react-d3-tree";
 import {
   ResizableHandle,
@@ -8,7 +8,11 @@ import {
 
 import { HierarchyTree, Sidebar } from "@/components";
 import { filterTreeData, type Selection } from "@/utils";
-import { useTreePreferences, useNodeSearch } from "@/hooks";
+import {
+  useDeselectOnEscape,
+  useNodeSearch,
+  useTreePreferences,
+} from "@/hooks";
 import type { NodeRef, TreeNode } from "@/types";
 
 export interface MainContainerProps {
@@ -51,22 +55,7 @@ export const MainContainer = ({
   );
 
   const hasSelection = selection.status !== "none";
-
-  useEffect(() => {
-    if (!hasSelection) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // A popover that closes on Esc prevents the default; let it have the key.
-      if (event.key !== "Escape" || event.defaultPrevented) return;
-      event.preventDefault();
-      event.stopPropagation();
-      onDeselectNode();
-    };
-
-    // On body rather than document, where DevTools takes Esc for its drawer.
-    document.body.addEventListener("keydown", handleKeyDown);
-    return () => document.body.removeEventListener("keydown", handleKeyDown);
-  }, [hasSelection, onDeselectNode]);
+  useDeselectOnEscape(hasSelection, onDeselectNode);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
