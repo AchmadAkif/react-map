@@ -11,6 +11,7 @@ export function HierarchyTree({
   nodeSize,
   selectedInstanceId,
   onSelectNode,
+  onSelectedNodeDrawnChange,
 }: HierarchyTreeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
@@ -41,6 +42,7 @@ export function HierarchyTree({
               toggleNode={nodeProps.toggleNode}
               selectedInstanceId={selectedInstanceId}
               onSelectNode={onSelectNode}
+              onSelectedNodeDrawnChange={onSelectedNodeDrawnChange}
             />
           )}
           // Only the initial view: the root starts in the middle.

@@ -8,4 +8,5 @@ export interface TreeNodeElementProps extends Pick<
   orientation: TreeOrientation;
   selectedInstanceId: number | null;
   onSelectNode: (node: NodeRef) => void;
+  onSelectedNodeDrawnChange: (isDrawn: boolean) => void;
 }

@@ -1,4 +1,6 @@
 import { XIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import { Skeleton } from "../ui/skeleton";
@@ -7,10 +9,10 @@ import { PropsPanel } from "../PropsPanel";
 import { TextPanel } from "../TextPanel";
 import type {
   ComponentDetailsProps,
-  LiveDetailsProps,
+  NodeDetailsProps,
 } from "./ComponentDetails.types";
 
-const LiveDetails = ({ details }: LiveDetailsProps) => {
+const NodeDetails = ({ details }: NodeDetailsProps) => {
   const { state, classState, text } = details;
   const hasStateSection = state !== undefined || classState !== undefined;
 
@@ -36,6 +38,7 @@ const LiveDetails = ({ details }: LiveDetailsProps) => {
 
 export const ComponentDetails = ({
   selection,
+  isHidden,
   onDeselectNode,
 }: ComponentDetailsProps) => {
   if (selection.status === "none") {
@@ -49,7 +52,15 @@ export const ComponentDetails = ({
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between gap-3 px-4 pb-2">
-        <p className="font-bold text-blue-500">{selection.name}</p>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <p className="font-bold text-blue-500">{selection.name}</p>
+          <div role="status" className="flex">
+            {selection.status === "unmounted" && (
+              <Badge variant="destructive">Unmounted</Badge>
+            )}
+            {isHidden && <Badge variant="secondary">Hidden in tree</Badge>}
+          </div>
+        </div>
         <Button
           aria-label="Deselect node"
           size="icon-sm"
@@ -72,14 +83,10 @@ export const ComponentDetails = ({
         </div>
       )}
 
-      {selection.status === "unmounted" && (
-        <p className="mx-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-600 dark:text-amber-400">
-          This node is no longer present in the React tree.
-        </p>
-      )}
-
-      {selection.status === "live" && (
-        <LiveDetails details={selection.details} />
+      {selection.status !== "loading" && selection.details && (
+        <div className={cn(selection.status === "unmounted" && "opacity-50")}>
+          <NodeDetails details={selection.details} />
+        </div>
       )}
     </div>
   );

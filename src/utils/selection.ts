@@ -1,11 +1,13 @@
 import type { NodeRef, TreeNode } from "../types";
+import { listSelectableNodes } from "./treeSearch";
 
 /** The selected node, if any, and what the panel shows for it. */
 export type Selection =
   | { status: "none" }
   | ({ status: "loading" } & NodeRef)
   | ({ status: "live"; details: TreeNode } & NodeRef)
-  | ({ status: "unmounted" } & NodeRef);
+  // Holds the last details, or null if it unmounted before any arrived.
+  | ({ status: "unmounted"; details: TreeNode | null } & NodeRef);
 
 export type SelectionEvent =
   | ({ type: "select" } & NodeRef)
@@ -25,11 +27,10 @@ export const nextSelection = (
   switch (event.type) {
     case "select": {
       const { instanceId, name } = event;
-      const isAlreadyShown =
-        (selection.status === "loading" || selection.status === "live") &&
-        selection.instanceId === instanceId;
+      const isAlreadySelected =
+        selection.status !== "none" && selection.instanceId === instanceId;
 
-      return isAlreadyShown ? selection : { status: "loading", instanceId, name };
+      return isAlreadySelected ? selection : { status: "loading", instanceId, name };
     }
 
     case "deselect":
@@ -46,9 +47,31 @@ export const nextSelection = (
       const { instanceId, name } = selection;
       const { details } = event;
 
-      return details
-        ? { status: "live", instanceId, name: details.name, details }
-        : { status: "unmounted", instanceId, name };
+      if (details) {
+        return { status: "live", instanceId, name: details.name, details };
+      }
+
+      const lastDetails =
+        selection.status === "loading" ? null : selection.details;
+
+      return { status: "unmounted", instanceId, name, details: lastDetails };
     }
   }
 };
+
+/**
+ * Whether the selected node is mounted but not drawn. While its details are
+ * loading it may turn out to be unmounted, so it does not count as hidden. Nor
+ * does a node missing from the unfiltered tree, because a node that unmounts
+ * leaves the tree before its details say so.
+ */
+export const isSelectionHidden = (
+  selection: Selection,
+  unfilteredTree: TreeNode,
+  isDrawn: boolean,
+): boolean =>
+  selection.status === "live" &&
+  !isDrawn &&
+  listSelectableNodes(unfilteredTree).some(
+    ({ instanceId }) => instanceId === selection.instanceId,
+  );

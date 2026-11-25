@@ -11,6 +11,7 @@ export const Sidebar = ({
   nodeSpacing,
   onNodeSpacingChange,
   selection,
+  isSelectionHidden,
   onDeselectNode,
   treeFilters,
   onFilterChange,
@@ -37,6 +38,7 @@ export const Sidebar = ({
       <Separator className="my-2" />
       <ComponentDetails
         selection={selection}
+        isHidden={isSelectionHidden}
         onDeselectNode={onDeselectNode}
       />
     </div>

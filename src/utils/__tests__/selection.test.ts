@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { nextSelection, NOTHING_SELECTED, type Selection } from "../selection";
+import {
+  isSelectionHidden,
+  nextSelection,
+  NOTHING_SELECTED,
+  type Selection,
+} from "../selection";
 import type { TreeNode } from "@/types";
 
 const counterDetails: TreeNode = {
@@ -26,6 +31,7 @@ const unmountedCounter: Selection = {
   status: "unmounted",
   instanceId: 1,
   name: "Counter",
+  details: counterDetails,
 };
 
 const loadingRoot: Selection = {
@@ -76,14 +82,15 @@ describe("selection rules", () => {
       ).toEqual(liveCounter);
     });
 
-    it("loads again when an unmounted node is selected again", () => {
+    // It can still be drawn until the next tree update.
+    it("keeps the last details when an unmounted node is selected again", () => {
       expect(
         nextSelection(unmountedCounter, {
           type: "select",
           instanceId: 1,
-          name: "Header",
+          name: "Counter",
         }),
-      ).toEqual({ status: "loading", instanceId: 1, name: "Header" });
+      ).toEqual(unmountedCounter);
     });
   });
 
@@ -172,7 +179,7 @@ describe("selection rules", () => {
       ).toEqual({ status: "none" });
     });
 
-    it("marks a node that is no longer found as unmounted", () => {
+    it("keeps the last details of a node that unmounts", () => {
       expect(
         nextSelection(liveCounter, {
           type: "details-received",
@@ -180,6 +187,89 @@ describe("selection rules", () => {
           details: null,
         }),
       ).toEqual(unmountedCounter);
+    });
+
+    it("keeps the last details while the node stays unmounted", () => {
+      expect(
+        nextSelection(unmountedCounter, {
+          type: "details-received",
+          instanceId: 1,
+          details: null,
+        }),
+      ).toEqual(unmountedCounter);
+    });
+
+    it("marks a node that unmounts before its details arrive as unmounted", () => {
+      expect(
+        nextSelection(loadingCounter, {
+          type: "details-received",
+          instanceId: 1,
+          details: null,
+        }),
+      ).toEqual({
+        status: "unmounted",
+        instanceId: 1,
+        name: "Counter",
+        details: null,
+      });
+    });
+  });
+
+  describe("unmounted", () => {
+    it("is cleared by selecting another node", () => {
+      expect(
+        nextSelection(unmountedCounter, {
+          type: "select",
+          instanceId: 2,
+          name: "App",
+        }),
+      ).toEqual(loadingRoot);
+    });
+
+    it("is cleared by deselecting", () => {
+      expect(nextSelection(unmountedCounter, { type: "deselect" })).toEqual({
+        status: "none",
+      });
+    });
+  });
+
+  describe("hidden", () => {
+    const treeWithCounter: TreeNode = {
+      name: "App",
+      instanceId: 2,
+      children: [{ name: "Counter", instanceId: 1 }],
+    };
+    const treeWithoutCounter: TreeNode = { name: "App", instanceId: 2 };
+
+    it("is a mounted node that is not drawn", () => {
+      expect(isSelectionHidden(liveCounter, treeWithCounter, false)).toBe(true);
+    });
+
+    it("ends when the node is drawn again", () => {
+      expect(isSelectionHidden(liveCounter, treeWithCounter, true)).toBe(false);
+    });
+
+    it("keeps updating live", () => {
+      const updated: TreeNode = { ...counterDetails, props: { count: 2 } };
+      const selection = nextSelection(liveCounter, {
+        type: "details-received",
+        instanceId: 1,
+        details: updated,
+      });
+
+      expect(selection).toMatchObject({ status: "live", details: updated });
+      expect(isSelectionHidden(selection, treeWithCounter, false)).toBe(true);
+    });
+
+    it.each([
+      ["an unmounted node", unmountedCounter, treeWithoutCounter],
+      ["an unmounted node in an outdated tree", unmountedCounter, treeWithCounter],
+      // The details saying it unmounted arrive after the tree.
+      ["a node that just left the tree", liveCounter, treeWithoutCounter],
+      ["a node whose details are loading", loadingCounter, treeWithCounter],
+      ["no node", NOTHING_SELECTED, treeWithCounter],
+    ])("is never %s", (_label, selection, tree) => {
+      expect(isSelectionHidden(selection, tree, false)).toBe(false);
     });
   });
 });

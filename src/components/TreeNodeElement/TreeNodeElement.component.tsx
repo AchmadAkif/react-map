@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from "react";
+import { useLayoutEffect, type KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
 import type { TreeNodeElementProps } from "./TreeNodeElement.types";
 
@@ -22,6 +22,7 @@ export function TreeNodeElement({
   toggleNode,
   selectedInstanceId,
   onSelectNode,
+  onSelectedNodeDrawnChange,
 }: TreeNodeElementProps) {
   const { name, attributes, children, instanceId } = nodeDatum;
   const hasChildren = Boolean(children?.length);
@@ -29,6 +30,14 @@ export function TreeNodeElement({
   // The artificial "Filtered Tree" root has no ID, so it cannot be selected.
   const isSelectable = instanceId !== undefined;
   const isSelected = isSelectable && instanceId === selectedInstanceId;
+
+  // Only a drawn node has an element, whether a filter or a collapsed branch
+  // excludes the others. A layout effect reports it before the next paint.
+  useLayoutEffect(() => {
+    if (!isSelected) return;
+    onSelectedNodeDrawnChange(true);
+    return () => onSelectedNodeDrawnChange(false);
+  }, [isSelected, onSelectedNodeDrawnChange]);
 
   // The control sits on the side the branch grows towards.
   const controlTransform =

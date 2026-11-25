@@ -9,4 +9,5 @@ export interface HierarchyTreeProps {
   nodeSize: NodeSpacing;
   selectedInstanceId: number | null;
   onSelectNode: (node: NodeRef) => void;
+  onSelectedNodeDrawnChange: (isDrawn: boolean) => void;
 }

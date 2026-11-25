@@ -7,6 +7,7 @@ export interface SidebarProps {
   nodeSpacing: NodeSpacing;
   onNodeSpacingChange: (value: number, axis: "x" | "y") => void;
   selection: Selection;
+  isSelectionHidden: boolean;
   onDeselectNode: () => void;
   treeFilters: TreeFilters;
   onFilterChange: (filterName: keyof TreeFilters, value: boolean) => void;

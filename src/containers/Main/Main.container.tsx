@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Tree as TreeType } from "react-d3-tree";
 import {
   ResizableHandle,
@@ -7,7 +7,12 @@ import {
 } from "@/components/ui/resizable";
 
 import { HierarchyTree, Sidebar } from "@/components";
-import { filterTreeData, listSelectableNodes, type Selection } from "@/utils";
+import {
+  filterTreeData,
+  isSelectionHidden,
+  listSelectableNodes,
+  type Selection,
+} from "@/utils";
 import { useDeselectOnEscape, useTreePreferences } from "@/hooks";
 import type { NodeRef, TreeNode } from "@/types";
 
@@ -25,6 +30,7 @@ export const MainContainer = ({
   onDeselectNode,
 }: MainContainerProps) => {
   const treeRef = useRef<TreeType>(null);
+  const [isSelectedNodeDrawn, setIsSelectedNodeDrawn] = useState(false);
 
   const {
     treeOrientation,
@@ -43,6 +49,11 @@ export const MainContainer = ({
   const searchableNodes = useMemo(
     () => listSelectableNodes(filteredTreeData),
     [filteredTreeData],
+  );
+
+  const isHidden = useMemo(
+    () => isSelectionHidden(selection, data, isSelectedNodeDrawn),
+    [selection, data, isSelectedNodeDrawn],
   );
 
   const handleChooseSearchResult = (node: NodeRef) => {
@@ -71,6 +82,7 @@ export const MainContainer = ({
             nodeSize={nodeSpacing}
             selectedInstanceId={selectedInstanceId}
             onSelectNode={onSelectNode}
+            onSelectedNodeDrawnChange={setIsSelectedNodeDrawn}
           />
         </ResizablePanel>
         <ResizableHandle withHandle />
@@ -81,6 +93,7 @@ export const MainContainer = ({
             nodeSpacing={nodeSpacing}
             onNodeSpacingChange={handleNodeSpacingChange}
             selection={selection}
+            isSelectionHidden={isHidden}
             onDeselectNode={onDeselectNode}
             treeFilters={treeFilters}
             onFilterChange={handleFilterChange}
