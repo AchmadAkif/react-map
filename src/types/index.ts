@@ -30,6 +30,9 @@ export interface TreeNode {
   props?: Record<string, unknown> | null;
 }
 
+/** Points to a drawn node that can be selected. */
+export type NodeRef = { nodePath: string; name: string };
+
 export type RenderedNode = HierarchyPointNode<TreeNodeDatum>;
 
 export type InspectableNode = {

@@ -5,11 +5,11 @@ import { useBridgeConnection } from "@/hooks";
 function App() {
   const {
     currentFiberTree,
-    selectedNodeData,
-    selectedNodePath,
+    selection,
     status,
     statusMessage,
-    handleSelectedNodeChange,
+    handleSelectNode,
+    handleDeselectNode,
     handleRetry,
   } = useBridgeConnection();
 
@@ -17,9 +17,9 @@ function App() {
     return (
       <MainContainer
         data={currentFiberTree}
-        selectedNodeData={selectedNodeData}
-        selectedNodePath={selectedNodePath}
-        onSelectedNodeChange={handleSelectedNodeChange}
+        selection={selection}
+        onSelectNode={handleSelectNode}
+        onDeselectNode={handleDeselectNode}
       />
     );
   }

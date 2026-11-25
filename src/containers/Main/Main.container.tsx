@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { Tree as TreeType } from "react-d3-tree";
 import {
   ResizableHandle,
@@ -7,25 +7,24 @@ import {
 } from "@/components/ui/resizable";
 
 import { HierarchyTree, Sidebar } from "@/components";
-import { filterTreeData } from "@/utils";
+import { filterTreeData, type Selection } from "@/utils";
 import { useTreePreferences, useNodeSearch } from "@/hooks";
-import type { InspectableNode, TreeNode } from "@/types";
+import type { NodeRef, TreeNode } from "@/types";
 
 export interface MainContainerProps {
   data: TreeNode;
-  selectedNodeData?: InspectableNode;
-  selectedNodePath?: string | null;
-  onSelectedNodeChange: (nodePath: string | null) => void;
+  selection: Selection;
+  onSelectNode: (node: NodeRef) => void;
+  onDeselectNode: () => void;
 }
 
 export const MainContainer = ({
   data,
-  selectedNodeData,
-  selectedNodePath,
-  onSelectedNodeChange,
+  selection,
+  onSelectNode,
+  onDeselectNode,
 }: MainContainerProps) => {
   const treeRef = useRef<TreeType>(null);
-  const [hoveredNode, setHoveredNode] = useState<TreeNode | null>(null);
 
   const {
     treeOrientation,
@@ -42,7 +41,7 @@ export const MainContainer = ({
     selectedValue,
     setSelectedValue,
     renderedNodeData,
-    selectedNode,
+    selectedNode: searchedNode,
     handleRenderedTreeData,
   } = useNodeSearch();
 
@@ -51,13 +50,23 @@ export const MainContainer = ({
     [data, treeFilters],
   );
 
-  const handleOnNodeHover = (node: TreeNode) => {
-    setHoveredNode(node);
-  };
+  const hasSelection = selection.status !== "none";
 
-  const hasSelectedNode = typeof selectedNodePath === "string";
-  const selectedNodeUnmounted = hasSelectedNode && selectedNodeData === null;
-  const inspectedNode = hasSelectedNode ? selectedNodeData : hoveredNode;
+  useEffect(() => {
+    if (!hasSelection) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // A popover that closes on Esc prevents the default; let it have the key.
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      event.stopPropagation();
+      onDeselectNode();
+    };
+
+    // On body rather than document, where DevTools takes Esc for its drawer.
+    document.body.addEventListener("keydown", handleKeyDown);
+    return () => document.body.removeEventListener("keydown", handleKeyDown);
+  }, [hasSelection, onDeselectNode]);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -68,10 +77,11 @@ export const MainContainer = ({
             data={filteredTreeData}
             treeOrientation={treeOrientation}
             nodeSize={nodeSpacing}
-            handleOnNodeHover={handleOnNodeHover}
             treeFilters={treeFilters}
             onRenderedTreeData={handleRenderedTreeData}
-            selectedNode={selectedNode}
+            searchedNode={searchedNode}
+            selectedNodePath={hasSelection ? selection.nodePath : null}
+            onSelectNode={onSelectNode}
           />
         </ResizablePanel>
         <ResizableHandle withHandle />
@@ -81,10 +91,8 @@ export const MainContainer = ({
             onSetOrientation={handleSetOrientation}
             nodeSpacing={nodeSpacing}
             onNodeSpacingChange={handleNodeSpacingChange}
-            selectedNode={inspectedNode}
-            selectedNodeUnmounted={selectedNodeUnmounted}
-            selectedNodePath={selectedNodePath ?? null}
-            onSelectedNodeChange={onSelectedNodeChange}
+            selection={selection}
+            onDeselectNode={onDeselectNode}
             treeFilters={treeFilters}
             onFilterChange={handleFilterChange}
             searchValue={searchValue}

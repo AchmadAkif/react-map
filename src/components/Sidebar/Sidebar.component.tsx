@@ -10,10 +10,8 @@ export const Sidebar = ({
   onSetOrientation,
   nodeSpacing,
   onNodeSpacingChange,
-  selectedNode,
-  selectedNodeUnmounted,
-  selectedNodePath,
-  onSelectedNodeChange,
+  selection,
+  onDeselectNode,
   treeFilters,
   onFilterChange,
   searchValue,
@@ -42,10 +40,8 @@ export const Sidebar = ({
       />
       <Separator className="my-2" />
       <ComponentDetails
-        selectedNode={selectedNode ?? null}
-        selectedNodeUnmounted={selectedNodeUnmounted}
-        selectedNodePath={selectedNodePath}
-        onSelectedNodeChange={onSelectedNodeChange}
+        selection={selection}
+        onDeselectNode={onDeselectNode}
       />
     </div>
   );

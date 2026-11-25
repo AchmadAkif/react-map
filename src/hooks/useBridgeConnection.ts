@@ -1,6 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { BridgeSnapshot, Message } from "../../extension/backend/types";
-import type { TreeNode } from "@/types";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import type {
+  BridgeSnapshot,
+  Message,
+  PanelCommand,
+} from "../../extension/backend/types";
+import { nextSelection, NOTHING_SELECTED } from "@/utils";
+import type { NodeRef, TreeNode } from "@/types";
 
 export type PanelStatus = "success" | "loading" | "error" | "no-react";
 
@@ -14,13 +19,10 @@ export function useBridgeConnection() {
   const [currentFiberTree, setCurrentFiberTree] = useState<TreeNode | null>(
     null,
   );
-  const [nodeDetailCache, setNodeDetailCache] = useState<
-    Record<string, TreeNode>
-  >({});
-  const [selectedNodeData, setSelectedNodeData] = useState<TreeNode | null>(
-    null,
+  const [selection, dispatchSelection] = useReducer(
+    nextSelection,
+    NOTHING_SELECTED,
   );
-  const [selectedNodePath, setSelectedNodePath] = useState<string | null>(null);
   const [status, setStatus] = useState<PanelStatus>("loading");
   const [statusMessage, setStatusMessage] = useState(
     "Waiting for a React tree from the inspected page.",
@@ -62,24 +64,13 @@ export function useBridgeConnection() {
           setStatusMessage("");
         }
 
-        const nextSelectedNodePath = fiberSnapshot.selectedNodePath;
-        if (typeof nextSelectedNodePath === "string") {
-          const selectedNode = fiberSnapshot.selectedNode;
-          if (selectedNode) {
-            setNodeDetailCache((prev) => ({
-              ...prev,
-              [nextSelectedNodePath]: selectedNode as unknown as TreeNode,
-            }));
-            setSelectedNodeData(selectedNode as unknown as TreeNode);
-          } else {
-            setSelectedNodeData(null);
-          }
+        dispatchSelection({
+          type: "details-received",
+          nodePath: fiberSnapshot.selectedNodePath,
+          details: fiberSnapshot.selectedNode as unknown as TreeNode | null,
+        });
 
-          setSelectedNodePath(nextSelectedNodePath);
-        } else if (fiberSnapshot.tree) {
-          setSelectedNodeData((prev) => prev);
-          setSelectedNodePath((prev) => prev);
-        } else {
+        if (!fiberSnapshot.tree && fiberSnapshot.selectedNodePath === null) {
           setCurrentFiberTree(null);
           setStatus("no-react");
           setStatusMessage(
@@ -107,35 +98,25 @@ export function useBridgeConnection() {
     portRef.current = createdPort;
   }, [clearConnectionTimeout]);
 
-  const handleSelectedNodeChange = useCallback(
-    (nodePath: string | null) => {
-      if (!portRef.current) {
-        return;
-      }
+  const sendCommand = useCallback((command: PanelCommand) => {
+    portRef.current?.postMessage({
+      source: "react-map-panel",
+      payload: command,
+    });
+  }, []);
 
-      if (nodePath === null) {
-        setSelectedNodeData(null);
-        setSelectedNodePath(null);
-      } else {
-        setSelectedNodePath(nodePath);
-        setSelectedNodeData(nodeDetailCache[nodePath] ?? null);
-      }
-
-      portRef.current.postMessage({
-        source: "react-map-panel",
-        payload:
-          nodePath === null
-            ? {
-                type: "deselect-node",
-              }
-            : {
-                type: "select-node",
-                nodePath,
-              },
-      });
+  const handleSelectNode = useCallback(
+    ({ nodePath, name }: NodeRef) => {
+      dispatchSelection({ type: "select", nodePath, name });
+      sendCommand({ type: "select-node", nodePath });
     },
-    [nodeDetailCache],
+    [sendCommand],
   );
+
+  const handleDeselectNode = useCallback(() => {
+    dispatchSelection({ type: "deselect" });
+    sendCommand({ type: "deselect-node" });
+  }, [sendCommand]);
 
   useEffect(() => {
     bootstrapTimerRef.current = window.setTimeout(() => {
@@ -162,11 +143,11 @@ export function useBridgeConnection() {
 
   return {
     currentFiberTree,
-    selectedNodeData,
-    selectedNodePath,
+    selection,
     status,
     statusMessage,
-    handleSelectedNodeChange,
+    handleSelectNode,
+    handleDeselectNode,
     handleRetry,
   };
 }

@@ -28,7 +28,7 @@ export type BackendPayload =
 export type PanelCommand =
   | {
       type: "select-node";
-      nodePath: string | null;
+      nodePath: string;
     }
   | {
       type: "deselect-node";

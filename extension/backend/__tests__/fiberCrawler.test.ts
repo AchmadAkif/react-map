@@ -213,6 +213,31 @@ describe("fiberCrawler", () => {
       expect(findFiberByNodePath(null, "0")).toBeNull();
     });
 
+    it("finds the root by its empty path and serializes its details", () => {
+      const app = createMockFiber({
+        type: { displayName: "App" },
+        memoizedProps: { title: "Home" },
+      });
+      const strictMode = createMockFiber({
+        tag: WorkTag.Mode,
+        type: null,
+        child: app,
+      });
+      const hostRoot = createMockFiber({
+        tag: WorkTag.HostRoot,
+        type: null,
+        child: strictMode,
+      });
+
+      const found = findFiberByNodePath(hostRoot, "");
+      expect(found).toBe(app);
+      expect(serializeNodeDetail(found, "")).toMatchObject({
+        name: "App",
+        nodePath: "",
+        props: { title: "Home" },
+      });
+    });
+
     it("finds the exact target fiber node by hierarchical path", () => {
       const targetFiber = createMockFiber({
         tag: WorkTag.FunctionComponent,

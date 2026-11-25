@@ -31,6 +31,7 @@ const reactInstances = devtoolsGlobalHook?.renderers;
 const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
 let latestCommittedRoot: FiberRoot | null = null;
+// The root's path is an empty string, so compare with null, not truthiness.
 let selectedNodePath: string | null = null;
 
 const postSnapshot = (payload: BackendPayload) => {
@@ -76,7 +77,7 @@ window.addEventListener("message", (event) => {
 
   if (message.payload === "init") {
     if (latestCommittedRoot) {
-      if (selectedNodePath) {
+      if (selectedNodePath !== null) {
         sendSelectedNodeSnapshot(latestCommittedRoot, selectedNodePath);
       } else {
         sendTreeSnapshot(latestCommittedRoot);
@@ -89,7 +90,7 @@ window.addEventListener("message", (event) => {
   if (message.payload.type === "select-node") {
     selectedNodePath = message.payload.nodePath;
 
-    if (latestCommittedRoot && selectedNodePath) {
+    if (latestCommittedRoot && selectedNodePath !== null) {
       sendSelectedNodeSnapshot(latestCommittedRoot, selectedNodePath);
     }
 
@@ -128,7 +129,7 @@ window.addEventListener("message", (event) => {
 
         sendTreeSnapshot(root);
 
-        if (selectedNodePath) {
+        if (selectedNodePath !== null) {
           sendSelectedNodeSnapshot(root, selectedNodePath);
         }
       } catch (error) {

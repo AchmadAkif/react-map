@@ -1,21 +1,34 @@
 import type { KeyboardEvent } from "react";
+import { cn } from "@/lib/utils";
 import type { TreeNodeElementProps } from "./TreeNodeElement.types";
 
 const NODE_RADIUS = 15;
+const RING_RADIUS = NODE_RADIUS + 4;
 const CONTROL_RADIUS = 8;
-const CONTROL_OFFSET = NODE_RADIUS + CONTROL_RADIUS + 1;
+const CONTROL_OFFSET = RING_RADIUS + CONTROL_RADIUS + 1;
 const SIGN_ARM = 4;
 const LABEL_X = 40;
+
+/** Stops a double-click from reaching the tree's native zoom listener. */
+const keepDoubleClickFromZooming = (element: SVGGElement) => {
+  const stop = (event: Event) => event.stopPropagation();
+  element.addEventListener("dblclick", stop);
+  return () => element.removeEventListener("dblclick", stop);
+};
 
 export function TreeNodeElement({
   nodeDatum,
   orientation,
   toggleNode,
-  onNodeMouseOver,
+  selectedNodePath,
+  onSelectNode,
 }: TreeNodeElementProps) {
-  const { name, attributes, children } = nodeDatum;
+  const { name, attributes, children, nodePath } = nodeDatum;
   const hasChildren = Boolean(children?.length);
   const { collapsed } = nodeDatum.__rd3t;
+  // The artificial "Filtered Tree" root has no path, so it cannot be selected.
+  const isSelectable = nodePath !== undefined;
+  const isSelected = isSelectable && nodePath === selectedNodePath;
 
   // The control sits on the side the branch grows towards.
   const controlTransform =
@@ -32,14 +45,30 @@ export function TreeNodeElement({
 
   return (
     <>
-      <circle
-        r={NODE_RADIUS}
-        onMouseOver={onNodeMouseOver}
-      />
-      <g className="rd3t-label">
-        <text className="rd3t-label__title" textAnchor="start" x={LABEL_X}>
+      <g
+        ref={keepDoubleClickFromZooming}
+        className={cn(
+          isSelectable ? "group/node cursor-pointer" : "cursor-grab",
+          isSelected && "fill-primary stroke-primary",
+        )}
+        onClick={
+          isSelectable ? () => onSelectNode({ nodePath, name }) : undefined
+        }
+      >
+        {isSelected && <circle r={RING_RADIUS} fill="none" strokeWidth={2} />}
+        <circle r={NODE_RADIUS} className="group-hover/node:stroke-primary" />
+        <text
+          className={cn(
+            "fill-black stroke-none group-hover/node:fill-primary",
+            isSelected && "font-bold",
+          )}
+          textAnchor="start"
+          x={LABEL_X}
+        >
           {name}
         </text>
+      </g>
+      <g className="cursor-grab">
         <text className="rd3t-label__attributes">
           {Object.entries(attributes ?? {}).map(([key, value]) => (
             <tspan key={key} x={LABEL_X} dy="1.2em">
@@ -50,6 +79,7 @@ export function TreeNodeElement({
       </g>
       {hasChildren && (
         <g
+          ref={keepDoubleClickFromZooming}
           role="button"
           tabIndex={0}
           aria-expanded={!collapsed}

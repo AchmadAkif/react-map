@@ -1,8 +1,6 @@
-import type { InspectableNode } from "../../types";
+import type { Selection } from "../../utils";
 
 export interface ComponentDetailsProps {
-  selectedNode: InspectableNode;
-  selectedNodeUnmounted?: boolean;
-  selectedNodePath: string | null;
-  onSelectedNodeChange: (nodePath: string | null) => void;
+  selection: Selection;
+  onDeselectNode: () => void;
 }

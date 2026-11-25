@@ -9,10 +9,11 @@ export function HierarchyTree({
   data,
   treeOrientation,
   nodeSize,
-  handleOnNodeHover,
   treeFilters,
   onRenderedTreeData,
-  selectedNode,
+  searchedNode,
+  selectedNodePath,
+  onSelectNode,
 }: HierarchyTreeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerRect, setContainerRect] = useState<DOMRect | null>(null);
@@ -32,10 +33,10 @@ export function HierarchyTree({
   }, [data, treeFilters, onRenderedTreeData, treeRef]);
 
   useEffect(() => {
-    if (selectedNode && treeRef && "current" in treeRef && treeRef.current) {
-      treeRef.current.centerNode(selectedNode);
+    if (searchedNode && treeRef && "current" in treeRef && treeRef.current) {
+      treeRef.current.centerNode(searchedNode);
     }
-  }, [selectedNode, treeRef]);
+  }, [searchedNode, treeRef]);
 
   // Convert domain TreeNode to RawNodeDatum format only at the visualization boundary
   const rawNodeData = useMemo(() => toRawNodeDatum(data), [data]);
@@ -65,12 +66,10 @@ export function HierarchyTree({
             nodeDatum={nodeProps.nodeDatum}
             orientation={treeOrientation}
             toggleNode={nodeProps.toggleNode}
-            onNodeMouseOver={nodeProps.onNodeMouseOver}
+            selectedNodePath={selectedNodePath}
+            onSelectNode={onSelectNode}
           />
         )}
-        onNodeMouseOver={(node) => {
-          if (handleOnNodeHover) handleOnNodeHover(node.data as unknown as import("@/types").TreeNode);
-        }}
         dimensions={
           containerRect
             ? {
