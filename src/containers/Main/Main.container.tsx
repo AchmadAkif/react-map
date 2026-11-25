@@ -11,6 +11,8 @@ import {
   filterTreeData,
   isSelectionHidden,
   listSelectableNodes,
+  type BranchId,
+  type CollapsedBranches,
   type Selection,
 } from "@/utils";
 import { useDeselectOnEscape, useTreePreferences } from "@/hooks";
@@ -18,6 +20,8 @@ import type { NodeRef, TreeNode } from "@/types";
 
 export interface MainContainerProps {
   data: TreeNode;
+  collapsedBranches: CollapsedBranches;
+  onToggleBranch: (instanceId: BranchId) => void;
   selection: Selection;
   onSelectNode: (node: NodeRef) => void;
   onDeselectNode: () => void;
@@ -25,6 +29,8 @@ export interface MainContainerProps {
 
 export const MainContainer = ({
   data,
+  collapsedBranches,
+  onToggleBranch,
   selection,
   onSelectNode,
   onDeselectNode,
@@ -80,6 +86,8 @@ export const MainContainer = ({
             data={filteredTreeData}
             treeOrientation={treeOrientation}
             nodeSize={nodeSpacing}
+            collapsedBranches={collapsedBranches}
+            onToggleBranch={onToggleBranch}
             selectedInstanceId={selectedInstanceId}
             onSelectNode={onSelectNode}
             onSelectedNodeDrawnChange={setIsSelectedNodeDrawn}

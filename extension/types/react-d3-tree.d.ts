@@ -9,6 +9,8 @@ declare module "react-d3-tree" {
     text?: string;
     isDOM?: boolean | null;
     instanceId?: number;
+    /** Whether the node's children are left out because it is collapsed. */
+    isCollapsed?: boolean;
   }
 }
 

@@ -19,14 +19,13 @@ const keepDoubleClickFromZooming = (element: SVGGElement) => {
 export function TreeNodeElement({
   nodeDatum,
   orientation,
-  toggleNode,
   selectedInstanceId,
+  onToggleBranch,
   onSelectNode,
   onSelectedNodeDrawnChange,
 }: TreeNodeElementProps) {
-  const { name, attributes, children, instanceId } = nodeDatum;
-  const hasChildren = Boolean(children?.length);
-  const { collapsed } = nodeDatum.__rd3t;
+  const { name, attributes, children, instanceId, isCollapsed } = nodeDatum;
+  const hasChildren = isCollapsed || Boolean(children?.length);
   // The artificial "Filtered Tree" root has no ID, so it cannot be selected.
   const isSelectable = instanceId !== undefined;
   const isSelected = isSelectable && instanceId === selectedInstanceId;
@@ -45,11 +44,13 @@ export function TreeNodeElement({
       ? `translate(${CONTROL_OFFSET},0)`
       : `translate(0,${CONTROL_OFFSET})`;
 
+  const toggleBranch = () => onToggleBranch(instanceId);
+
   const handleControlKeyDown = (event: KeyboardEvent) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     if (event.repeat) return;
-    toggleNode();
+    toggleBranch();
   };
 
   return (
@@ -91,16 +92,16 @@ export function TreeNodeElement({
           ref={keepDoubleClickFromZooming}
           role="button"
           tabIndex={0}
-          aria-expanded={!collapsed}
-          aria-label={`${collapsed ? "Expand" : "Collapse"} ${name}`}
+          aria-expanded={!isCollapsed}
+          aria-label={`${isCollapsed ? "Expand" : "Collapse"} ${name}`}
           className="cursor-pointer"
           transform={controlTransform}
-          onClick={toggleNode}
+          onClick={toggleBranch}
           onKeyDown={handleControlKeyDown}
         >
           <circle r={CONTROL_RADIUS} fill="#fff" strokeWidth={1} />
           <path
-            d={`M${-SIGN_ARM},0H${SIGN_ARM}${collapsed ? `M0,${-SIGN_ARM}V${SIGN_ARM}` : ""}`}
+            d={`M${-SIGN_ARM},0H${SIGN_ARM}${isCollapsed ? `M0,${-SIGN_ARM}V${SIGN_ARM}` : ""}`}
             strokeWidth={1.5}
           />
         </g>

@@ -9,6 +9,8 @@ export function HierarchyTree({
   data,
   treeOrientation,
   nodeSize,
+  collapsedBranches,
+  onToggleBranch,
   selectedInstanceId,
   onSelectNode,
   onSelectedNodeDrawnChange,
@@ -23,7 +25,10 @@ export function HierarchyTree({
   }, []);
 
   // Convert domain TreeNode to RawNodeDatum format only at the visualization boundary
-  const rawNodeData = useMemo(() => toRawNodeDatum(data), [data]);
+  const rawNodeData = useMemo(
+    () => toRawNodeDatum(data, collapsedBranches),
+    [data, collapsedBranches],
+  );
 
   // The wrapper is always rendered: it is measured once on mount, which may be
   // while the filters hide everything.
@@ -39,7 +44,7 @@ export function HierarchyTree({
             <TreeNodeElement
               nodeDatum={nodeProps.nodeDatum}
               orientation={treeOrientation}
-              toggleNode={nodeProps.toggleNode}
+              onToggleBranch={onToggleBranch}
               selectedInstanceId={selectedInstanceId}
               onSelectNode={onSelectNode}
               onSelectedNodeDrawnChange={onSelectedNodeDrawnChange}

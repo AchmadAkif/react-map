@@ -5,9 +5,11 @@ import { useBridgeConnection } from "@/hooks";
 function App() {
   const {
     currentFiberTree,
+    collapsedBranches,
     selection,
     status,
     statusMessage,
+    handleToggleBranch,
     handleSelectNode,
     handleDeselectNode,
     handleRetry,
@@ -17,6 +19,8 @@ function App() {
     return (
       <MainContainer
         data={currentFiberTree}
+        collapsedBranches={collapsedBranches}
+        onToggleBranch={handleToggleBranch}
         selection={selection}
         onSelectNode={handleSelectNode}
         onDeselectNode={handleDeselectNode}

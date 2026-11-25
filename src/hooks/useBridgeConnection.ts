@@ -4,7 +4,13 @@ import type {
   Message,
   PanelCommand,
 } from "../../extension/backend/types";
-import { nextSelection, NOTHING_SELECTED } from "@/utils";
+import {
+  nextCollapsedBranches,
+  nextSelection,
+  NOTHING_COLLAPSED,
+  NOTHING_SELECTED,
+  type BranchId,
+} from "@/utils";
 import type { NodeRef, TreeNode } from "@/types";
 
 export type PanelStatus = "success" | "loading" | "error" | "no-react";
@@ -28,6 +34,10 @@ export function useBridgeConnection() {
   const [selection, dispatchSelection] = useReducer(
     nextSelection,
     NOTHING_SELECTED,
+  );
+  const [collapsedBranches, dispatchCollapse] = useReducer(
+    nextCollapsedBranches,
+    NOTHING_COLLAPSED,
   );
   const [status, setStatus] = useState<PanelStatus>("loading");
   const [statusMessage, setStatusMessage] = useState(WAITING_MESSAGE);
@@ -68,8 +78,11 @@ export function useBridgeConnection() {
 
         clearConnectionTimeout();
 
-        if (payload.tree) {
-          setCurrentFiberTree(payload.tree as unknown as TreeNode);
+        const tree = payload.tree as unknown as TreeNode | null;
+        dispatchCollapse({ type: "tree-received", tree });
+
+        if (tree) {
+          setCurrentFiberTree(tree);
           setStatus("success");
           setStatusMessage("");
         } else {
@@ -125,6 +138,10 @@ export function useBridgeConnection() {
     sendCommand({ type: "deselect-node" });
   }, [sendCommand]);
 
+  const handleToggleBranch = useCallback((instanceId: BranchId) => {
+    dispatchCollapse({ type: "toggle", instanceId });
+  }, []);
+
   // Listens outside the port, so a reload is noticed after a disconnect too.
   useEffect(() => {
     const onPageLoad = (
@@ -143,6 +160,7 @@ export function useBridgeConnection() {
 
       // The old tree goes too: its instance IDs mean nothing to the new page.
       dispatchSelection({ type: "page-reload" });
+      dispatchCollapse({ type: "page-reload" });
       setCurrentFiberTree(null);
       setStatus("loading");
       setStatusMessage(WAITING_MESSAGE);
@@ -187,9 +205,11 @@ export function useBridgeConnection() {
 
   return {
     currentFiberTree,
+    collapsedBranches,
     selection,
     status,
     statusMessage,
+    handleToggleBranch,
     handleSelectNode,
     handleDeselectNode,
     handleRetry,
