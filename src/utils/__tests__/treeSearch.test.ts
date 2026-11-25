@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { findNodeById, findNodeByPath } from "../treeSearch";
+import { findNodeById, findNodeByPath, listSelectableNodes } from "../treeSearch";
 import type { TreeNode } from "@/types";
 import type { TreeNodeDatum } from "react-d3-tree";
 
@@ -63,5 +63,48 @@ describe("treeSearch utils", () => {
 
     expect(findNodeById("missing", d3Nodes)).toBeNull();
     expect(findNodeById("missing", [])).toBeNull();
+  });
+});
+
+describe("listSelectableNodes", () => {
+  it("lists every node, including the root with its empty path", () => {
+    expect(
+      listSelectableNodes({
+        name: "App",
+        nodePath: "",
+        children: [
+          {
+            name: "Sidebar",
+            nodePath: "0",
+            children: [{ name: "Button", nodePath: "0/0" }],
+          },
+          { name: "Content", nodePath: "1" },
+        ],
+      }),
+    ).toEqual([
+      { name: "App", nodePath: "" },
+      { name: "Sidebar", nodePath: "0" },
+      { name: "Button", nodePath: "0/0" },
+      { name: "Content", nodePath: "1" },
+    ]);
+  });
+
+  it("leaves out the artificial root but keeps its children", () => {
+    expect(
+      listSelectableNodes({
+        name: "Filtered Tree",
+        children: [
+          { name: "Sidebar", nodePath: "0" },
+          { name: "Content", nodePath: "1" },
+        ],
+      }),
+    ).toEqual([
+      { name: "Sidebar", nodePath: "0" },
+      { name: "Content", nodePath: "1" },
+    ]);
+  });
+
+  it("lists nothing when no tree is drawn", () => {
+    expect(listSelectableNodes(null)).toEqual([]);
   });
 });

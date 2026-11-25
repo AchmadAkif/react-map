@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, useLayoutEffect, useEffect } from "react";
+import { useMemo, useRef, useState, useLayoutEffect } from "react";
 import Tree from "react-d3-tree";
 import { TreeNodeElement } from "../TreeNodeElement";
 import { toRawNodeDatum } from "@/types/treeAdapter";
@@ -9,9 +9,6 @@ export function HierarchyTree({
   data,
   treeOrientation,
   nodeSize,
-  treeFilters,
-  onRenderedTreeData,
-  searchedNode,
   selectedNodePath,
   onSelectNode,
 }: HierarchyTreeProps) {
@@ -23,20 +20,6 @@ export function HierarchyTree({
       setContainerRect(containerRef.current.getBoundingClientRect());
     }
   }, []);
-
-  useEffect(() => {
-    if (treeRef && "current" in treeRef && treeRef.current) {
-      const renderedTreeData = treeRef.current.generateTree();
-      const { nodes } = renderedTreeData;
-      onRenderedTreeData(nodes);
-    }
-  }, [data, treeFilters, onRenderedTreeData, treeRef]);
-
-  useEffect(() => {
-    if (searchedNode && treeRef && "current" in treeRef && treeRef.current) {
-      treeRef.current.centerNode(searchedNode);
-    }
-  }, [searchedNode, treeRef]);
 
   // Convert domain TreeNode to RawNodeDatum format only at the visualization boundary
   const rawNodeData = useMemo(() => toRawNodeDatum(data), [data]);
@@ -70,6 +53,12 @@ export function HierarchyTree({
             onSelectNode={onSelectNode}
           />
         )}
+        // Only the initial view: the root starts in the middle.
+        translate={
+          containerRect
+            ? { x: containerRect.width / 2, y: containerRect.height / 2 }
+            : undefined
+        }
         dimensions={
           containerRect
             ? {

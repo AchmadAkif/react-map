@@ -7,12 +7,8 @@ import {
 } from "@/components/ui/resizable";
 
 import { HierarchyTree, Sidebar } from "@/components";
-import { filterTreeData, type Selection } from "@/utils";
-import {
-  useDeselectOnEscape,
-  useNodeSearch,
-  useTreePreferences,
-} from "@/hooks";
+import { filterTreeData, listSelectableNodes, type Selection } from "@/utils";
+import { useDeselectOnEscape, useTreePreferences } from "@/hooks";
 import type { NodeRef, TreeNode } from "@/types";
 
 export interface MainContainerProps {
@@ -39,22 +35,29 @@ export const MainContainer = ({
     handleFilterChange,
   } = useTreePreferences();
 
-  const {
-    searchValue,
-    setSearchValue,
-    selectedValue,
-    setSelectedValue,
-    renderedNodeData,
-    selectedNode: searchedNode,
-    handleRenderedTreeData,
-  } = useNodeSearch();
-
   const filteredTreeData = useMemo(
     () => filterTreeData(data, treeFilters),
     [data, treeFilters],
   );
 
+  const searchableNodes = useMemo(
+    () => listSelectableNodes(filteredTreeData),
+    [filteredTreeData],
+  );
+
+  const handleChooseSearchResult = (node: NodeRef) => {
+    onSelectNode(node);
+
+    // A result inside a collapsed branch is not drawn, so it stays uncentered.
+    const tree = treeRef.current;
+    const drawnNode = tree
+      ?.generateTree()
+      .nodes.find(({ data }) => data.nodePath === node.nodePath);
+    if (drawnNode) tree?.centerNode(drawnNode);
+  };
+
   const hasSelection = selection.status !== "none";
+  const selectedNodePath = hasSelection ? selection.nodePath : null;
   useDeselectOnEscape(hasSelection, onDeselectNode);
 
   return (
@@ -66,10 +69,7 @@ export const MainContainer = ({
             data={filteredTreeData}
             treeOrientation={treeOrientation}
             nodeSize={nodeSpacing}
-            treeFilters={treeFilters}
-            onRenderedTreeData={handleRenderedTreeData}
-            searchedNode={searchedNode}
-            selectedNodePath={hasSelection ? selection.nodePath : null}
+            selectedNodePath={selectedNodePath}
             onSelectNode={onSelectNode}
           />
         </ResizablePanel>
@@ -84,11 +84,9 @@ export const MainContainer = ({
             onDeselectNode={onDeselectNode}
             treeFilters={treeFilters}
             onFilterChange={handleFilterChange}
-            searchValue={searchValue}
-            onSearchValueChange={setSearchValue}
-            selectedValue={selectedValue}
-            onSelectedValueChange={setSelectedValue}
-            renderedNodeData={renderedNodeData}
+            searchableNodes={searchableNodes}
+            selectedNodePath={selectedNodePath}
+            onChooseSearchResult={handleChooseSearchResult}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

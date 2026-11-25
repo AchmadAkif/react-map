@@ -1,5 +1,5 @@
 import type { TreeNodeDatum } from "react-d3-tree";
-import type { TreeNode } from "../types";
+import type { NodeRef, TreeNode } from "../types";
 
 export const findNodeById = (
   id: string,
@@ -29,6 +29,21 @@ export const findNodeById = (
   };
 
   return traverse(root);
+};
+
+/**
+ * Lists the nodes that search can choose. The artificial "Filtered Tree" root
+ * has no path, so it is left out.
+ */
+export const listSelectableNodes = (node: TreeNode | null): NodeRef[] => {
+  if (!node) return [];
+
+  const { name, nodePath, children = [] } = node;
+  const descendants = children.flatMap(listSelectableNodes);
+
+  return nodePath === undefined
+    ? descendants
+    : [{ name, nodePath }, ...descendants];
 };
 
 export const findNodeByPath = (

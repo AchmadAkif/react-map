@@ -1,5 +1,5 @@
 import type { Selection } from "../../utils";
-import type { NodeSpacing, TreeFilters, TreeOrientation } from "../../types";
+import type { NodeRef, NodeSpacing, TreeFilters, TreeOrientation } from "../../types";
 
 export interface SidebarProps {
   treeOrientation: TreeOrientation;
@@ -10,9 +10,7 @@ export interface SidebarProps {
   onDeselectNode: () => void;
   treeFilters: TreeFilters;
   onFilterChange: (filterName: keyof TreeFilters, value: boolean) => void;
-  searchValue: string;
-  onSearchValueChange: (value: string) => void;
-  selectedValue: string;
-  onSelectedValueChange: (value: string) => void;
-  renderedNodeData: { value: string; label: string }[];
+  searchableNodes: NodeRef[];
+  selectedNodePath: string | null;
+  onChooseSearchResult: (node: NodeRef) => void;
 }

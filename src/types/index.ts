@@ -1,6 +1,3 @@
-import type { HierarchyPointNode } from "d3-hierarchy";
-import type { TreeNodeDatum } from "react-d3-tree";
-
 export type TreeOrientation = "vertical" | "horizontal";
 export type NodeSpacing = { x: number; y: number };
 
@@ -30,10 +27,8 @@ export interface TreeNode {
   props?: Record<string, unknown> | null;
 }
 
-/** Points to a drawn node that can be selected. */
+/** Points to a node that can be selected. */
 export type NodeRef = { nodePath: string; name: string };
-
-export type RenderedNode = HierarchyPointNode<TreeNodeDatum>;
 
 export type InspectableNode = {
   name?: string;

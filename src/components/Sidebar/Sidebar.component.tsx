@@ -14,20 +14,16 @@ export const Sidebar = ({
   onDeselectNode,
   treeFilters,
   onFilterChange,
-  searchValue,
-  onSearchValueChange,
-  selectedValue,
-  onSelectedValueChange,
-  renderedNodeData,
+  searchableNodes,
+  selectedNodePath,
+  onChooseSearchResult,
 }: SidebarProps) => {
   return (
     <div className="h-full overflow-y-auto py-3 shadow-md">
       <SearchBar
-        items={renderedNodeData}
-        searchValue={searchValue}
-        onSearchValueChange={onSearchValueChange}
-        selectedValue={selectedValue}
-        onSelectedValueChange={onSelectedValueChange}
+        nodes={searchableNodes}
+        selectedNodePath={selectedNodePath}
+        onChooseNode={onChooseSearchResult}
       />
       <Separator className="my-2" />
       <PreferencesCollapsible
