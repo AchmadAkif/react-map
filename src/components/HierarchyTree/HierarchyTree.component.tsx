@@ -9,7 +9,7 @@ export function HierarchyTree({
   data,
   treeOrientation,
   nodeSize,
-  selectedNodePath,
+  selectedInstanceId,
   onSelectNode,
 }: HierarchyTreeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -39,7 +39,7 @@ export function HierarchyTree({
               nodeDatum={nodeProps.nodeDatum}
               orientation={treeOrientation}
               toggleNode={nodeProps.toggleNode}
-              selectedNodePath={selectedNodePath}
+              selectedInstanceId={selectedInstanceId}
               onSelectNode={onSelectNode}
             />
           )}

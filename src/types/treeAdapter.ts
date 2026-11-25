@@ -14,6 +14,6 @@ export function toRawNodeDatum(node: TreeNode | null): RawNodeDatum | null {
     isDOM: node.isDOM,
     state: node.state,
     props: node.props,
-    nodePath: node.nodePath,
+    instanceId: node.instanceId,
   } as unknown as RawNodeDatum;
 }

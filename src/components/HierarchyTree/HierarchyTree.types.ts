@@ -7,6 +7,6 @@ export interface HierarchyTreeProps {
   data: TreeNode | null;
   treeOrientation: "vertical" | "horizontal";
   nodeSize: NodeSpacing;
-  selectedNodePath: string | null;
+  selectedInstanceId: number | null;
   onSelectNode: (node: NodeRef) => void;
 }

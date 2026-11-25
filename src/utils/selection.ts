@@ -12,15 +12,14 @@ export type SelectionEvent =
   | { type: "deselect" }
   | {
       type: "details-received";
-      nodePath: string | null;
+      instanceId: number | null;
       details: TreeNode | null;
     };
 
 export const NOTHING_SELECTED: Selection = { status: "none" };
 
 /**
- * Applies an event to the current selection. The root's path is an empty
- * string, so absence is always checked through `status` or `null`.
+ * Applies an event to the current selection.
  */
 export const nextSelection = (
   selection: Selection,
@@ -28,12 +27,12 @@ export const nextSelection = (
 ): Selection => {
   switch (event.type) {
     case "select": {
-      const { nodePath, name } = event;
+      const { instanceId, name } = event;
       const isAlreadyShown =
         (selection.status === "loading" || selection.status === "live") &&
-        selection.nodePath === nodePath;
+        selection.instanceId === instanceId;
 
-      return isAlreadyShown ? selection : { status: "loading", nodePath, name };
+      return isAlreadyShown ? selection : { status: "loading", instanceId, name };
     }
 
     case "deselect":
@@ -42,17 +41,17 @@ export const nextSelection = (
     case "details-received": {
       if (
         selection.status === "none" ||
-        selection.nodePath !== event.nodePath
+        selection.instanceId !== event.instanceId
       ) {
         return selection;
       }
 
-      const { nodePath, name } = selection;
+      const { instanceId, name } = selection;
       const { details } = event;
 
       return details
-        ? { status: "live", nodePath, name: details.name, details }
-        : { status: "unmounted", nodePath, name };
+        ? { status: "live", instanceId, name: details.name, details }
+        : { status: "unmounted", instanceId, name };
     }
   }
 };

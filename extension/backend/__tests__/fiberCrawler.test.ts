@@ -3,8 +3,7 @@ import {
   traverseFiber,
   traverseFiberMinimal,
   serializeNodeDetail,
-  findFiberByNodePath,
-  buildNodePath,
+  findFiberByInstanceId,
 } from "../fiberCrawler";
 import { WorkTag, type Fiber } from "../reactInternal.types";
 
@@ -38,18 +37,6 @@ function createMockFiber(overrides: Partial<Fiber> = {}): Fiber {
 }
 
 describe("fiberCrawler", () => {
-  describe("buildNodePath", () => {
-    it("constructs root-level path when parentPath is empty", () => {
-      expect(buildNodePath("", 0)).toBe("0");
-      expect(buildNodePath("", 2)).toBe("2");
-    });
-
-    it("constructs nested hierarchical paths", () => {
-      expect(buildNodePath("0", 1)).toBe("0/1");
-      expect(buildNodePath("0/1", 3)).toBe("0/1/3");
-    });
-  });
-
   describe("traverseFiber and traverseFiberMinimal", () => {
     it("returns null for null fiber node", () => {
       expect(traverseFiber(null)).toBeNull();
@@ -72,7 +59,6 @@ describe("fiberCrawler", () => {
       expect(minimal).not.toBeNull();
       expect(minimal?.name).toBe("App");
       expect(minimal?.attributes?.nodeType).toBe("FunctionComponent");
-      expect(minimal?.nodePath).toBe("");
       expect(minimal?.state).toBeUndefined();
       expect(minimal?.props).toBeUndefined();
     });
@@ -89,10 +75,9 @@ describe("fiberCrawler", () => {
         },
       });
 
-      const detailed = traverseFiber(fiber, "0", { includeDetails: true });
+      const detailed = traverseFiber(fiber, { includeDetails: true });
       expect(detailed).not.toBeNull();
       expect(detailed?.name).toBe("Counter");
-      expect(detailed?.nodePath).toBe("0");
       expect(detailed?.props).toEqual({ initialCount: 5 });
       expect(detailed?.state).toBeDefined();
       expect(detailed?.state?.[0]?.value).toBe(5);
@@ -142,14 +127,13 @@ describe("fiberCrawler", () => {
         child: textNode,
       });
 
-      const result = traverseFiber(divFiber, "0");
+      const result = traverseFiber(divFiber);
       expect(result).not.toBeNull();
       expect(result?.name).toBe("div");
       expect(result?.isDOM).toBe(true);
-      // HostText was skipped, so div only has 1 visible child (CustomButton) with path 0/0
+      // HostText was skipped, so div only has 1 visible child (CustomButton)
       expect(result?.children?.length).toBe(1);
       expect(result?.children?.[0]?.name).toBe("CustomButton");
-      expect(result?.children?.[0]?.nodePath).toBe("0/0");
     });
 
     it("transparently flattens multiple children when Mode is an intermediate wrapper", () => {
@@ -176,33 +160,30 @@ describe("fiberCrawler", () => {
         child: strictMode,
       });
 
-      const result = traverseFiber(appFiber, "0");
+      const result = traverseFiber(appFiber);
       expect(result).not.toBeNull();
       // Both Header and Footer appear under App without Mode
       expect(result?.children?.length).toBe(2);
       expect(result?.children?.[0]?.name).toBe("Header");
-      expect(result?.children?.[0]?.nodePath).toBe("0/0");
       expect(result?.children?.[1]?.name).toBe("Footer");
-      expect(result?.children?.[1]?.nodePath).toBe("0/1");
     });
   });
 
   describe("serializeNodeDetail", () => {
     it("returns null for null fiber", () => {
-      expect(serializeNodeDetail(null, "0")).toBeNull();
+      expect(serializeNodeDetail(null)).toBeNull();
     });
 
-    it("serializes single node details with state, props, and path", () => {
+    it("serializes single node details with state and props", () => {
       const fiber = createMockFiber({
         tag: WorkTag.FunctionComponent,
         type: { displayName: "UserProfile" },
         memoizedProps: { username: "Alice" },
       });
 
-      const detail = serializeNodeDetail(fiber, "0/1");
+      const detail = serializeNodeDetail(fiber);
       expect(detail).not.toBeNull();
       expect(detail?.name).toBe("UserProfile");
-      expect(detail?.nodePath).toBe("0/1");
       expect(detail?.props).toEqual({ username: "Alice" });
       expect(detail?.isDOM).toBe(false);
     });
@@ -220,7 +201,7 @@ describe("fiberCrawler", () => {
         },
       });
 
-      const detail = serializeNodeDetail(fiber, "0");
+      const detail = serializeNodeDetail(fiber);
       expect(detail?.classState).toEqual({
         count: 5,
         user: { name: "Alice" },
@@ -245,7 +226,6 @@ describe("fiberCrawler", () => {
           // React may keep its own data here, which is not the node's state.
           memoizedState: { memoizedState: null, queue: null, next: null },
         }),
-        "0",
       );
 
       expect(detail?.props).toEqual({ className: "main" });
@@ -261,7 +241,6 @@ describe("fiberCrawler", () => {
           elementType: null,
           memoizedProps: text,
         }),
-        "0",
       );
 
       expect(detail?.text).toBe(text);
@@ -283,7 +262,6 @@ describe("fiberCrawler", () => {
             },
           },
         }),
-        "0",
       );
 
       expect(detail?.state).toEqual([
@@ -294,79 +272,66 @@ describe("fiberCrawler", () => {
     });
   });
 
-  describe("findFiberByNodePath", () => {
-    it("returns null for null fiber or non-matching path", () => {
-      expect(findFiberByNodePath(null, "0")).toBeNull();
+  describe("findFiberByInstanceId", () => {
+    it("returns null when there is no tree or no such instance", () => {
+      expect(findFiberByInstanceId(null, 1)).toBeNull();
+      expect(findFiberByInstanceId(createMockFiber(), -1)).toBeNull();
     });
 
-    it("finds the root by its empty path and serializes its details", () => {
+    it("finds every node of the tree, through transparent wrappers", () => {
+      const inner = createMockFiber({ type: { displayName: "Inner" } });
+      const last = createMockFiber({ type: { displayName: "Last" } });
+      const innerMode = createMockFiber({
+        tag: WorkTag.Mode,
+        type: null,
+        child: inner,
+      });
+      const outerMode = createMockFiber({
+        tag: WorkTag.Mode,
+        type: null,
+        child: innerMode,
+        sibling: last,
+      });
       const app = createMockFiber({
         type: { displayName: "App" },
         memoizedProps: { title: "Home" },
-      });
-      const strictMode = createMockFiber({
-        tag: WorkTag.Mode,
-        type: null,
-        child: app,
+        child: outerMode,
       });
       const hostRoot = createMockFiber({
         tag: WorkTag.HostRoot,
         type: null,
-        child: strictMode,
+        child: createMockFiber({ tag: WorkTag.Mode, type: null, child: app }),
       });
 
-      const found = findFiberByNodePath(hostRoot, "");
-      expect(found).toBe(app);
-      expect(serializeNodeDetail(found, "")).toMatchObject({
+      const tree = traverseFiberMinimal(hostRoot)!;
+      const find = (instanceId?: number) =>
+        findFiberByInstanceId(hostRoot, instanceId!);
+
+      expect(tree.children?.map(({ name }) => name)).toEqual(["Inner", "Last"]);
+      expect(find(tree.instanceId)).toBe(app);
+      expect(find(tree.children?.[0].instanceId)).toBe(inner);
+      expect(find(tree.children?.[1].instanceId)).toBe(last);
+      expect(serializeNodeDetail(app)).toMatchObject({
         name: "App",
-        nodePath: "",
+        instanceId: tree.instanceId,
         props: { title: "Home" },
       });
     });
 
-    it("finds the exact target fiber node by hierarchical path", () => {
-      const targetFiber = createMockFiber({
-        tag: WorkTag.FunctionComponent,
-        type: { displayName: "TargetComponent" },
+    it("shares the ID between the current and alternate fibers", () => {
+      const first = createMockFiber({ type: { displayName: "Counter" } });
+      const instanceId = traverseFiberMinimal(first)!.instanceId;
+
+      // Hot reload keeps the fiber pair and swaps the component function.
+      const second = createMockFiber({
+        type: { displayName: "Counter" },
+        alternate: first,
       });
+      first.alternate = second;
 
-      const otherChild = createMockFiber({
-        tag: WorkTag.FunctionComponent,
-        type: { displayName: "OtherComponent" },
-      });
-
-      const parentFiber = createMockFiber({
-        tag: WorkTag.FunctionComponent,
-        type: { displayName: "Parent" },
-        child: otherChild,
-      });
-      otherChild.sibling = targetFiber;
-
-      const root = createMockFiber({
-        tag: WorkTag.HostRoot,
-        child: parentFiber,
-      });
-
-      const tree = traverseFiber(root);
-      expect(tree).not.toBeNull();
-      expect(tree?.nodePath).toBe("");
-      expect(tree?.children?.[0]?.nodePath).toBe("0");
-      expect(tree?.children?.[1]?.nodePath).toBe("1");
-
-      // Target is at child index 1 of Parent (path "1")
-      const found = findFiberByNodePath(root, "1");
-      expect(found).toBe(targetFiber);
-
-      // Other is at child index 0 of Parent (path "0")
-      const foundOther = findFiberByNodePath(root, "0");
-      expect(foundOther).toBe(otherChild);
-
-      // Parent is at root (path "")
-      const foundParent = findFiberByNodePath(root, "");
-      expect(foundParent).toBe(parentFiber);
-
-      // Invalid path returns null
-      expect(findFiberByNodePath(root, "5")).toBeNull();
+      expect(findFiberByInstanceId(second, instanceId)).toBe(second);
+      expect(traverseFiberMinimal(second)!.instanceId).toBe(instanceId);
+      expect(traverseFiberMinimal(first)!.instanceId).toBe(instanceId);
     });
   });
 });

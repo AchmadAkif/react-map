@@ -20,15 +20,15 @@ export function TreeNodeElement({
   nodeDatum,
   orientation,
   toggleNode,
-  selectedNodePath,
+  selectedInstanceId,
   onSelectNode,
 }: TreeNodeElementProps) {
-  const { name, attributes, children, nodePath } = nodeDatum;
+  const { name, attributes, children, instanceId } = nodeDatum;
   const hasChildren = Boolean(children?.length);
   const { collapsed } = nodeDatum.__rd3t;
-  // The artificial "Filtered Tree" root has no path, so it cannot be selected.
-  const isSelectable = nodePath !== undefined;
-  const isSelected = isSelectable && nodePath === selectedNodePath;
+  // The artificial "Filtered Tree" root has no ID, so it cannot be selected.
+  const isSelectable = instanceId !== undefined;
+  const isSelected = isSelectable && instanceId === selectedInstanceId;
 
   // The control sits on the side the branch grows towards.
   const controlTransform =
@@ -52,7 +52,7 @@ export function TreeNodeElement({
           isSelected && "fill-primary stroke-primary",
         )}
         onClick={
-          isSelectable ? () => onSelectNode({ nodePath, name }) : undefined
+          isSelectable ? () => onSelectNode({ instanceId, name }) : undefined
         }
       >
         {isSelected && <circle r={RING_RADIUS} fill="none" strokeWidth={2} />}

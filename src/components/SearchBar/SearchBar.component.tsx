@@ -17,19 +17,18 @@ import { Skeleton } from "../ui/skeleton";
 
 export type SearchBarProps = {
   nodes: NodeRef[];
-  selectedNodePath: string | null;
+  selectedInstanceId: number | null;
   onChooseNode: (node: NodeRef) => void;
   isLoading?: boolean;
   emptyMessage?: string;
   placeholder?: string;
 };
 
-// cmdk cannot highlight an item with an empty value, such as the root's path.
-const toItemValue = (nodePath: string) => `node:${nodePath}`;
+const toItemValue = (instanceId: number) => String(instanceId);
 
 export function SearchBar({
   nodes,
-  selectedNodePath,
+  selectedInstanceId,
   onChooseNode,
   isLoading,
   emptyMessage = "Cannot find node with that name.",
@@ -39,7 +38,7 @@ export function SearchBar({
   const [searchValue, setSearchValue] = useState("");
 
   const nodesByItemValue = useMemo(
-    () => new Map(nodes.map((node) => [toItemValue(node.nodePath), node])),
+    () => new Map(nodes.map((node) => [toItemValue(node.instanceId), node])),
     [nodes],
   );
 
@@ -103,15 +102,15 @@ export function SearchBar({
                 <CommandGroup>
                   {nodes.map((node) => (
                     <CommandItem
-                      key={node.nodePath}
-                      value={toItemValue(node.nodePath)}
+                      key={node.instanceId}
+                      value={toItemValue(node.instanceId)}
                       onMouseDown={(e) => e.preventDefault()}
                       onSelect={() => handleChoose(node)}
                     >
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          selectedNodePath === node.nodePath
+                          selectedInstanceId === node.instanceId
                             ? "opacity-100"
                             : "opacity-0",
                         )}

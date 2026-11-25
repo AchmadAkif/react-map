@@ -26,12 +26,12 @@ const handleConnection = (port: chrome.runtime.Port) => {
 
       const cachedPayload = cache[tabId];
       if (cachedPayload !== undefined) {
-        const { tree, selectedNode, selectedNodePath } = cachedPayload;
+        const { tree, selectedNode, selectedInstanceId } = cachedPayload;
         postToPanel(port, { mode: "tree-minimal", tree });
         postToPanel(port, {
           mode: "node-detail",
           node: selectedNode,
-          nodePath: selectedNodePath,
+          instanceId: selectedInstanceId,
         });
       }
 
@@ -91,20 +91,20 @@ const handleMessage = (
     const existingSnapshot = cache[senderTabId] ?? {
       tree: null,
       selectedNode: null,
-      selectedNodePath: null,
+      selectedInstanceId: null,
     };
 
     if (payload.mode === "tree-minimal") {
       cache[senderTabId] = {
         tree: payload.tree,
         selectedNode: existingSnapshot.selectedNode,
-        selectedNodePath: existingSnapshot.selectedNodePath,
+        selectedInstanceId: existingSnapshot.selectedInstanceId,
       };
     } else {
       cache[senderTabId] = {
         ...existingSnapshot,
         selectedNode: payload.node,
-        selectedNodePath: payload.nodePath,
+        selectedInstanceId: payload.instanceId,
       };
     }
 

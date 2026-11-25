@@ -33,21 +33,21 @@ export const findNodeById = (
 
 /**
  * Lists the nodes that search can choose. The artificial "Filtered Tree" root
- * has no path, so it is left out.
+ * has no instance ID, so it is left out.
  */
 export const listSelectableNodes = (node: TreeNode | null): NodeRef[] => {
   if (!node) return [];
 
-  const { name, nodePath, children = [] } = node;
+  const { name, instanceId, children = [] } = node;
   const descendants = children.flatMap(listSelectableNodes);
 
-  return nodePath === undefined
+  return instanceId === undefined
     ? descendants
-    : [{ name, nodePath }, ...descendants];
+    : [{ name, instanceId }, ...descendants];
 };
 
-export const findNodeByPath = (
-  nodePath: string,
+export const findNodeByInstanceId = (
+  instanceId: number,
   treeData: TreeNode[] | null,
 ): TreeNode | null => {
   if (!treeData || treeData.length === 0) {
@@ -55,7 +55,7 @@ export const findNodeByPath = (
   }
 
   const traverse = (node: TreeNode): TreeNode | null => {
-    if (node.nodePath === nodePath) {
+    if (node.instanceId === instanceId) {
       return node;
     }
 

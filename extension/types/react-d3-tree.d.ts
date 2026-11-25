@@ -8,7 +8,7 @@ declare module "react-d3-tree" {
     props?: object | null;
     text?: string;
     isDOM?: boolean | null;
-    nodePath?: string;
+    instanceId?: number;
   }
 }
 

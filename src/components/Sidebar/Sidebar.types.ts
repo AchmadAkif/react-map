@@ -11,6 +11,6 @@ export interface SidebarProps {
   treeFilters: TreeFilters;
   onFilterChange: (filterName: keyof TreeFilters, value: boolean) => void;
   searchableNodes: NodeRef[];
-  selectedNodePath: string | null;
+  selectedInstanceId: number | null;
   onChooseSearchResult: (node: NodeRef) => void;
 }

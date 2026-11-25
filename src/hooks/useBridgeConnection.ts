@@ -61,7 +61,7 @@ export function useBridgeConnection() {
         if (payload.mode === "node-detail") {
           dispatchSelection({
             type: "details-received",
-            nodePath: payload.nodePath,
+            instanceId: payload.instanceId,
             details: payload.node as unknown as TreeNode | null,
           });
           return;
@@ -107,9 +107,9 @@ export function useBridgeConnection() {
   }, []);
 
   const handleSelectNode = useCallback(
-    ({ nodePath, name }: NodeRef) => {
-      dispatchSelection({ type: "select", nodePath, name });
-      sendCommand({ type: "select-node", nodePath });
+    ({ instanceId, name }: NodeRef) => {
+      dispatchSelection({ type: "select", instanceId, name });
+      sendCommand({ type: "select-node", instanceId });
     },
     [sendCommand],
   );

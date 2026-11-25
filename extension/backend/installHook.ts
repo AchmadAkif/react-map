@@ -1,6 +1,6 @@
 import { debounce } from "./utils";
 import {
-  findFiberByNodePath,
+  findFiberByInstanceId,
   serializeNodeDetail,
   traverseFiberMinimal,
 } from "./fiberCrawler";
@@ -31,8 +31,7 @@ const reactInstances = devtoolsGlobalHook?.renderers;
 const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
 let latestCommittedRoot: FiberRoot | null = null;
-// The root's path is an empty string, so compare with null, not truthiness.
-let selectedNodePath: string | null = null;
+let selectedInstanceId: number | null = null;
 
 const postSnapshot = (payload: BackendPayload) => {
   window.postMessage(
@@ -53,14 +52,14 @@ const sendTreeSnapshot = (root: FiberRoot) => {
   } satisfies TreeMinimalSnapshotMessage);
 };
 
-const sendSelectedNodeSnapshot = (root: FiberRoot, nodePath: string) => {
-  const selectedFiberNode = findFiberByNodePath(root.current, nodePath);
-  const serializedNode = serializeNodeDetail(selectedFiberNode, nodePath);
+const sendSelectedNodeSnapshot = (root: FiberRoot, instanceId: number) => {
+  const selectedFiberNode = findFiberByInstanceId(root.current, instanceId);
+  const serializedNode = serializeNodeDetail(selectedFiberNode);
 
   postSnapshot({
     mode: "node-detail",
     node: serializedNode,
-    nodePath,
+    instanceId,
   } satisfies NodeDetailSnapshotMessage);
 };
 
@@ -77,8 +76,8 @@ window.addEventListener("message", (event) => {
 
   if (message.payload === "init") {
     if (latestCommittedRoot) {
-      if (selectedNodePath !== null) {
-        sendSelectedNodeSnapshot(latestCommittedRoot, selectedNodePath);
+      if (selectedInstanceId !== null) {
+        sendSelectedNodeSnapshot(latestCommittedRoot, selectedInstanceId);
       } else {
         sendTreeSnapshot(latestCommittedRoot);
       }
@@ -88,23 +87,23 @@ window.addEventListener("message", (event) => {
   }
 
   if (message.payload.type === "select-node") {
-    const { nodePath } = message.payload;
-    selectedNodePath = nodePath;
+    const { instanceId } = message.payload;
+    selectedInstanceId = instanceId;
 
     if (latestCommittedRoot) {
-      sendSelectedNodeSnapshot(latestCommittedRoot, nodePath);
+      sendSelectedNodeSnapshot(latestCommittedRoot, instanceId);
     }
 
     return;
   }
 
   if (message.payload.type === "deselect-node") {
-    selectedNodePath = null;
+    selectedInstanceId = null;
 
     postSnapshot({
       mode: "node-detail",
       node: null,
-      nodePath: null,
+      instanceId: null,
     } satisfies NodeDetailSnapshotMessage);
   }
 });
@@ -130,8 +129,8 @@ window.addEventListener("message", (event) => {
 
         sendTreeSnapshot(root);
 
-        if (selectedNodePath !== null) {
-          sendSelectedNodeSnapshot(root, selectedNodePath);
+        if (selectedInstanceId !== null) {
+          sendSelectedNodeSnapshot(root, selectedInstanceId);
         }
       } catch (error) {
         console.error("[React-Map] Error: ", error);

@@ -52,12 +52,12 @@ export const MainContainer = ({
     const tree = treeRef.current;
     const drawnNode = tree
       ?.generateTree()
-      .nodes.find(({ data }) => data.nodePath === node.nodePath);
+      .nodes.find(({ data }) => data.instanceId === node.instanceId);
     if (drawnNode) tree?.centerNode(drawnNode);
   };
 
   const hasSelection = selection.status !== "none";
-  const selectedNodePath = hasSelection ? selection.nodePath : null;
+  const selectedInstanceId = hasSelection ? selection.instanceId : null;
   useDeselectOnEscape(hasSelection, onDeselectNode);
 
   return (
@@ -69,7 +69,7 @@ export const MainContainer = ({
             data={filteredTreeData}
             treeOrientation={treeOrientation}
             nodeSize={nodeSpacing}
-            selectedNodePath={selectedNodePath}
+            selectedInstanceId={selectedInstanceId}
             onSelectNode={onSelectNode}
           />
         </ResizablePanel>
@@ -85,7 +85,7 @@ export const MainContainer = ({
             treeFilters={treeFilters}
             onFilterChange={handleFilterChange}
             searchableNodes={searchableNodes}
-            selectedNodePath={selectedNodePath}
+            selectedInstanceId={selectedInstanceId}
             onChooseSearchResult={handleChooseSearchResult}
           />
         </ResizablePanel>

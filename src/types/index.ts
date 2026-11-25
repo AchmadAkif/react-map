@@ -19,7 +19,7 @@ export type ComponentHook = {
  */
 export interface TreeNode {
   name: string;
-  nodePath?: string;
+  instanceId?: number;
   attributes?: Record<string, string | number | boolean>;
   children?: TreeNode[];
   isDOM?: boolean | null;
@@ -34,12 +34,12 @@ export interface TreeNode {
 }
 
 /** Points to a node that can be selected. */
-export type NodeRef = { nodePath: string; name: string };
+export type NodeRef = { instanceId: number; name: string };
 
 export type InspectableNode = {
   name?: string;
   state?: ComponentHook[] | null;
   classState?: Record<string, unknown> | null;
   props?: Record<string, unknown> | null;
-  nodePath?: string;
+  instanceId?: number;
 } | null;

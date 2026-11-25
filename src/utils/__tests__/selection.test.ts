@@ -4,33 +4,33 @@ import type { TreeNode } from "@/types";
 
 const counterDetails: TreeNode = {
   name: "Counter",
-  nodePath: "0/1",
+  instanceId: 1,
   props: { count: 1 },
   state: null,
 };
 
 const loadingCounter: Selection = {
   status: "loading",
-  nodePath: "0/1",
+  instanceId: 1,
   name: "Counter",
 };
 
 const liveCounter: Selection = {
   status: "live",
-  nodePath: "0/1",
+  instanceId: 1,
   name: "Counter",
   details: counterDetails,
 };
 
 const unmountedCounter: Selection = {
   status: "unmounted",
-  nodePath: "0/1",
+  instanceId: 1,
   name: "Counter",
 };
 
 const loadingRoot: Selection = {
   status: "loading",
-  nodePath: "",
+  instanceId: 2,
   name: "App",
 };
 
@@ -40,17 +40,17 @@ describe("selection rules", () => {
       expect(
         nextSelection(NOTHING_SELECTED, {
           type: "select",
-          nodePath: "0/1",
+          instanceId: 1,
           name: "Counter",
         }),
       ).toEqual(loadingCounter);
     });
 
-    it("selects the root, whose path is an empty string", () => {
+    it("selects the root", () => {
       expect(
         nextSelection(NOTHING_SELECTED, {
           type: "select",
-          nodePath: "",
+          instanceId: 2,
           name: "App",
         }),
       ).toEqual(loadingRoot);
@@ -60,30 +60,30 @@ describe("selection rules", () => {
       expect(
         nextSelection(liveCounter, {
           type: "select",
-          nodePath: "0/2",
+          instanceId: 3,
           name: "Header",
         }),
-      ).toEqual({ status: "loading", nodePath: "0/2", name: "Header" });
+      ).toEqual({ status: "loading", instanceId: 3, name: "Header" });
     });
 
     it("keeps the selection and its details when the node is selected again", () => {
       expect(
         nextSelection(liveCounter, {
           type: "select",
-          nodePath: "0/1",
+          instanceId: 1,
           name: "Counter",
         }),
       ).toEqual(liveCounter);
     });
 
-    it("loads again when an unmounted node's path is selected again", () => {
+    it("loads again when an unmounted node is selected again", () => {
       expect(
         nextSelection(unmountedCounter, {
           type: "select",
-          nodePath: "0/1",
+          instanceId: 1,
           name: "Header",
         }),
-      ).toEqual({ status: "loading", nodePath: "0/1", name: "Header" });
+      ).toEqual({ status: "loading", instanceId: 1, name: "Header" });
     });
   });
 
@@ -98,24 +98,24 @@ describe("selection rules", () => {
       expect(
         nextSelection(loadingCounter, {
           type: "details-received",
-          nodePath: "0/1",
+          instanceId: 1,
           details: counterDetails,
         }),
       ).toEqual(liveCounter);
     });
 
     it("shows the details of the root", () => {
-      const appDetails: TreeNode = { name: "App", nodePath: "" };
+      const appDetails: TreeNode = { name: "App", instanceId: 2 };
 
       expect(
         nextSelection(loadingRoot, {
           type: "details-received",
-          nodePath: "",
+          instanceId: 2,
           details: appDetails,
         }),
       ).toEqual({
         status: "live",
-        nodePath: "",
+        instanceId: 2,
         name: "App",
         details: appDetails,
       });
@@ -127,26 +127,26 @@ describe("selection rules", () => {
       expect(
         nextSelection(liveCounter, {
           type: "details-received",
-          nodePath: "0/1",
+          instanceId: 1,
           details: updated,
         }),
       ).toEqual({
         status: "live",
-        nodePath: "0/1",
+        instanceId: 1,
         name: "Counter",
         details: updated,
       });
     });
 
     it.each([
-      ["another node", "0/2"],
-      ["the root", ""],
+      ["another node", 3],
+      ["the root", 2],
       ["no node", null],
-    ])("ignores a stale response for %s", (_label, nodePath) => {
+    ])("ignores a stale response for %s", (_label, instanceId) => {
       expect(
         nextSelection(loadingCounter, {
           type: "details-received",
-          nodePath,
+          instanceId,
           details: null,
         }),
       ).toEqual(loadingCounter);
@@ -156,7 +156,7 @@ describe("selection rules", () => {
       expect(
         nextSelection(loadingRoot, {
           type: "details-received",
-          nodePath: null,
+          instanceId: null,
           details: null,
         }),
       ).toEqual(loadingRoot);
@@ -166,7 +166,7 @@ describe("selection rules", () => {
       expect(
         nextSelection(NOTHING_SELECTED, {
           type: "details-received",
-          nodePath: "0/1",
+          instanceId: 1,
           details: counterDetails,
         }),
       ).toEqual({ status: "none" });
@@ -176,7 +176,7 @@ describe("selection rules", () => {
       expect(
         nextSelection(liveCounter, {
           type: "details-received",
-          nodePath: "0/1",
+          instanceId: 1,
           details: null,
         }),
       ).toEqual(unmountedCounter);

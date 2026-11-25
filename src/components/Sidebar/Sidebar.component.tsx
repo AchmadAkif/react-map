@@ -15,14 +15,14 @@ export const Sidebar = ({
   treeFilters,
   onFilterChange,
   searchableNodes,
-  selectedNodePath,
+  selectedInstanceId,
   onChooseSearchResult,
 }: SidebarProps) => {
   return (
     <div className="h-full overflow-y-auto py-3 shadow-md">
       <SearchBar
         nodes={searchableNodes}
-        selectedNodePath={selectedNodePath}
+        selectedInstanceId={selectedInstanceId}
         onChooseNode={onChooseSearchResult}
       />
       <Separator className="my-2" />

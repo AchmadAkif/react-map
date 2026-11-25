@@ -15,28 +15,28 @@ describe("treeFiltering utils", () => {
 
   const sampleTree: TreeNode = {
     name: "App",
-    nodePath: "0",
+    instanceId: 1,
     attributes: { nodeType: "FunctionComponent" },
     children: [
       {
         name: "BrowserRouter",
-        nodePath: "0/0",
+        instanceId: 2,
         attributes: { nodeType: "FunctionComponent" },
         children: [
           {
             name: "Provider",
-            nodePath: "0/0/0",
+            instanceId: 3,
             attributes: { nodeType: "FunctionComponent" },
             children: [
               {
                 name: "div",
-                nodePath: "0/0/0/0",
+                instanceId: 4,
                 isDOM: true,
                 attributes: { nodeType: "HostComponent" },
                 children: [
                   {
                     name: "UserProfile",
-                    nodePath: "0/0/0/0/0",
+                    instanceId: 5,
                     attributes: { nodeType: "FunctionComponent" },
                   },
                 ],
@@ -84,7 +84,7 @@ describe("treeFiltering utils", () => {
     (_kind, name, nodeType) => {
       const tree: TreeNode = {
         name: "App",
-        nodePath: "0",
+        instanceId: 1,
         attributes: { nodeType: "FunctionComponent" },
         children: [
           { name: "Before", attributes: { nodeType: "FunctionComponent" } },
@@ -94,7 +94,7 @@ describe("treeFiltering utils", () => {
             children: [
               {
                 name: "Inside",
-                nodePath: "0/1/0",
+                instanceId: 99,
                 attributes: { nodeType: "FunctionComponent" },
               },
             ],
@@ -113,7 +113,7 @@ describe("treeFiltering utils", () => {
         "Inside",
         "After",
       ]);
-      expect(filtered?.children?.[1].nodePath).toBe("0/1/0");
+      expect(filtered?.children?.[1].instanceId).toBe(99);
       expect(filterTreeData(tree, defaultFilters)).toEqual(tree);
     },
   );

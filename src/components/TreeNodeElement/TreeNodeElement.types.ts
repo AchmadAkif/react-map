@@ -6,6 +6,6 @@ export interface TreeNodeElementProps extends Pick<
   "nodeDatum" | "toggleNode"
 > {
   orientation: TreeOrientation;
-  selectedNodePath: string | null;
+  selectedInstanceId: number | null;
   onSelectNode: (node: NodeRef) => void;
 }

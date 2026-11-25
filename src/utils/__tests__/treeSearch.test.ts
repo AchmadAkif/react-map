@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { findNodeById, findNodeByPath, listSelectableNodes } from "../treeSearch";
+import { findNodeById, findNodeByInstanceId, listSelectableNodes } from "../treeSearch";
 import type { TreeNode } from "@/types";
 import type { TreeNodeDatum } from "react-d3-tree";
 
@@ -7,40 +7,40 @@ describe("treeSearch utils", () => {
   const treeData: TreeNode[] = [
     {
       name: "App",
-      nodePath: "0",
+      instanceId: 1,
       children: [
         {
           name: "Sidebar",
-          nodePath: "0/0",
+          instanceId: 2,
           children: [
             {
               name: "Button",
-              nodePath: "0/0/0",
+              instanceId: 3,
             },
           ],
         },
         {
           name: "Content",
-          nodePath: "0/1",
+          instanceId: 4,
         },
       ],
     },
   ];
 
-  it("finds node by nodePath in TreeNode hierarchy", () => {
-    const found = findNodeByPath("0/0/0", treeData);
+  it("finds node by instanceId in TreeNode hierarchy", () => {
+    const found = findNodeByInstanceId(3, treeData);
     expect(found).not.toBeNull();
     expect(found?.name).toBe("Button");
   });
 
-  it("returns null if nodePath does not exist", () => {
-    const notFound = findNodeByPath("9/9/9", treeData);
+  it("returns null if instanceId does not exist", () => {
+    const notFound = findNodeByInstanceId(99, treeData);
     expect(notFound).toBeNull();
   });
 
-  it("returns null if empty treeData passed to findNodeByPath", () => {
-    expect(findNodeByPath("0", null)).toBeNull();
-    expect(findNodeByPath("0", [])).toBeNull();
+  it("returns null if empty treeData passed to findNodeByInstanceId", () => {
+    expect(findNodeByInstanceId(1, null)).toBeNull();
+    expect(findNodeByInstanceId(1, [])).toBeNull();
   });
 
   it("finds node by id using react-d3-tree TreeNodeDatum", () => {
@@ -67,25 +67,25 @@ describe("treeSearch utils", () => {
 });
 
 describe("listSelectableNodes", () => {
-  it("lists every node, including the root with its empty path", () => {
+  it("lists every node, including the root", () => {
     expect(
       listSelectableNodes({
         name: "App",
-        nodePath: "",
+        instanceId: 1,
         children: [
           {
             name: "Sidebar",
-            nodePath: "0",
-            children: [{ name: "Button", nodePath: "0/0" }],
+            instanceId: 2,
+            children: [{ name: "Button", instanceId: 3 }],
           },
-          { name: "Content", nodePath: "1" },
+          { name: "Content", instanceId: 4 },
         ],
       }),
     ).toEqual([
-      { name: "App", nodePath: "" },
-      { name: "Sidebar", nodePath: "0" },
-      { name: "Button", nodePath: "0/0" },
-      { name: "Content", nodePath: "1" },
+      { name: "App", instanceId: 1 },
+      { name: "Sidebar", instanceId: 2 },
+      { name: "Button", instanceId: 3 },
+      { name: "Content", instanceId: 4 },
     ]);
   });
 
@@ -94,13 +94,13 @@ describe("listSelectableNodes", () => {
       listSelectableNodes({
         name: "Filtered Tree",
         children: [
-          { name: "Sidebar", nodePath: "0" },
-          { name: "Content", nodePath: "1" },
+          { name: "Sidebar", instanceId: 2 },
+          { name: "Content", instanceId: 4 },
         ],
       }),
     ).toEqual([
-      { name: "Sidebar", nodePath: "0" },
-      { name: "Content", nodePath: "1" },
+      { name: "Sidebar", instanceId: 2 },
+      { name: "Content", instanceId: 4 },
     ]);
   });
 
