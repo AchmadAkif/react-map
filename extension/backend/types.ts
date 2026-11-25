@@ -29,9 +29,15 @@ export type NodeDetailSnapshotMessage = {
   instanceId: number | null;
 };
 
+/** Sent once per document, so a hot reload does not send it. */
+export type PageLoadMessage = {
+  mode: "page-load";
+};
+
 export type BackendPayload =
   | TreeMinimalSnapshotMessage
-  | NodeDetailSnapshotMessage;
+  | NodeDetailSnapshotMessage
+  | PageLoadMessage;
 
 export type PanelCommand =
   | {
@@ -40,6 +46,9 @@ export type PanelCommand =
     }
   | {
       type: "deselect-node";
+    }
+  | {
+      type: "panel-close";
     };
 
 export type BridgeSnapshot = {

@@ -97,6 +97,11 @@ window.addEventListener("message", (event) => {
     return;
   }
 
+  if (message.payload.type === "panel-close") {
+    selectedInstanceId = null;
+    return;
+  }
+
   if (message.payload.type === "deselect-node") {
     selectedInstanceId = null;
 

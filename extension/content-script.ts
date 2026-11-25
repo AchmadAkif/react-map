@@ -1,3 +1,5 @@
+import type { PageLoadMessage } from "./backend/types";
+
 const _DEBUG = import.meta.env.VITE_REACT_MAP_DEBUG_MODE;
 
 /**
@@ -74,6 +76,13 @@ chrome.runtime.onMessage.addListener((message) => {
   }
 
   window.postMessage(message, window.location.origin);
+});
+
+// This runs once per document, before the new page can send anything, so
+// whatever is still held from the previous page can be dropped.
+chrome.runtime.sendMessage({
+  source: "react-map-content-script",
+  payload: { mode: "page-load" } satisfies PageLoadMessage,
 });
 
 injectWhenNodeAvailable(chrome.runtime.getURL("/installHook.js"), "body");

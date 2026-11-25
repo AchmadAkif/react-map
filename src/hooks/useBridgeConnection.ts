@@ -11,6 +11,13 @@ export type PanelStatus = "success" | "loading" | "error" | "no-react";
 
 const CONNECTION_TIMEOUT_MS = 5000;
 
+const WAITING_MESSAGE = "Waiting for a React tree from the inspected page.";
+const NO_REACT_MESSAGE =
+  "No React tree has been captured yet. React-Map reads the tree from React's commit hook, so trigger a React render if needed, then retry.";
+
+const inspectedTabId = () => chrome.devtools.inspectedWindow.tabId;
+
+
 export function useBridgeConnection() {
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -24,9 +31,7 @@ export function useBridgeConnection() {
     NOTHING_SELECTED,
   );
   const [status, setStatus] = useState<PanelStatus>("loading");
-  const [statusMessage, setStatusMessage] = useState(
-    "Waiting for a React tree from the inspected page.",
-  );
+  const [statusMessage, setStatusMessage] = useState(WAITING_MESSAGE);
 
   const clearConnectionTimeout = useCallback(() => {
     if (timeoutRef.current !== null) {
@@ -38,16 +43,11 @@ export function useBridgeConnection() {
   const connectToBridge = useCallback(() => {
     clearConnectionTimeout();
 
-    if (portRef.current) {
-      portRef.current.disconnect();
-      portRef.current = null;
-    }
-
     setStatus("loading");
-    setStatusMessage("Waiting for a React tree from the inspected page.");
+    setStatusMessage(WAITING_MESSAGE);
 
     const createdPort = chrome.runtime.connect({
-      name: chrome.devtools.inspectedWindow.tabId.toString(),
+      name: inspectedTabId().toString(),
     });
 
     const onMessageListener = (message: Message) => {
@@ -55,8 +55,6 @@ export function useBridgeConnection() {
         message.source === "react-map-backend" &&
         typeof message.payload !== "string"
       ) {
-        clearConnectionTimeout();
-
         const payload = message.payload as unknown as BackendPayload;
         if (payload.mode === "node-detail") {
           dispatchSelection({
@@ -67,6 +65,10 @@ export function useBridgeConnection() {
           return;
         }
 
+        if (payload.mode !== "tree-minimal") return;
+
+        clearConnectionTimeout();
+
         if (payload.tree) {
           setCurrentFiberTree(payload.tree as unknown as TreeNode);
           setStatus("success");
@@ -74,14 +76,18 @@ export function useBridgeConnection() {
         } else {
           setCurrentFiberTree(null);
           setStatus("no-react");
-          setStatusMessage(
-            "No React tree has been captured yet. React-Map reads the tree from React's commit hook, so trigger a React render if needed, then retry.",
-          );
+          setStatusMessage(NO_REACT_MESSAGE);
         }
       }
     };
 
     createdPort.onMessage.addListener(onMessageListener);
+    // Only fires when the other side drops the connection.
+    createdPort.onDisconnect.addListener(() => {
+      if (portRef.current !== createdPort) return;
+      portRef.current = null;
+      dispatchSelection({ type: "unexpected-disconnect" });
+    });
     createdPort.postMessage({
       source: "react-map-panel",
       payload: "init",
@@ -93,9 +99,10 @@ export function useBridgeConnection() {
       setStatusMessage(
         "Timed out waiting for the inspected page to respond. React DevTools may be missing, the page may not use React, or the bridge may be blocked.",
       );
-      createdPort.disconnect();
     }, CONNECTION_TIMEOUT_MS);
 
+    // Only after the new port took over, or it would count as a panel close.
+    portRef.current?.disconnect();
     portRef.current = createdPort;
   }, [clearConnectionTimeout]);
 
@@ -119,9 +126,45 @@ export function useBridgeConnection() {
     sendCommand({ type: "deselect-node" });
   }, [sendCommand]);
 
+  // Listens outside the port, so a reload is noticed after a disconnect too.
+  useEffect(() => {
+    const onPageLoad = (
+      message: Message | undefined,
+      sender: chrome.runtime.MessageSender,
+    ) => {
+      if (
+        message?.source !== "react-map-content-script" ||
+        sender.tab?.id !== inspectedTabId()
+      ) {
+        return;
+      }
+
+      const payload = message.payload as unknown as BackendPayload;
+      if (payload.mode !== "page-load") return;
+
+      // The old tree goes too: its instance IDs mean nothing to the new page.
+      dispatchSelection({ type: "page-reload" });
+      setCurrentFiberTree(null);
+      setStatus("loading");
+      setStatusMessage(WAITING_MESSAGE);
+
+      clearConnectionTimeout();
+      // Stays connected, so a page that is slow to render still shows up.
+      timeoutRef.current = window.setTimeout(() => {
+        setStatus("no-react");
+        setStatusMessage(NO_REACT_MESSAGE);
+      }, CONNECTION_TIMEOUT_MS);
+    };
+
+    chrome.runtime.onMessage.addListener(onPageLoad);
+    return () => chrome.runtime.onMessage.removeListener(onPageLoad);
+  }, [clearConnectionTimeout]);
+
   useEffect(() => {
     bootstrapTimerRef.current = window.setTimeout(() => {
       connectToBridge();
+      // A panel that closed while disconnected could not tell the page.
+      sendCommand({ type: "deselect-node" });
     }, 0);
 
     return () => {
@@ -134,8 +177,9 @@ export function useBridgeConnection() {
         portRef.current.disconnect();
         portRef.current = null;
       }
+      dispatchSelection({ type: "panel-close" });
     };
-  }, [clearConnectionTimeout, connectToBridge]);
+  }, [clearConnectionTimeout, connectToBridge, sendCommand]);
 
   const handleRetry = useCallback(() => {
     setCurrentFiberTree(null);

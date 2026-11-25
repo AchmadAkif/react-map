@@ -233,6 +233,57 @@ describe("selection rules", () => {
     });
   });
 
+  const everySelection: [string, Selection][] = [
+    ["no node", NOTHING_SELECTED],
+    ["a node whose details are loading", loadingCounter],
+    ["a live node", liveCounter],
+    ["an unmounted node", unmountedCounter],
+  ];
+
+  describe("page reload", () => {
+    it.each(everySelection)("leaves nothing selected after %s", (_label, selection) => {
+      expect(nextSelection(selection, { type: "page-reload" })).toEqual({
+        status: "none",
+      });
+    });
+
+    it("ignores details from before the reload", () => {
+      const reloaded = nextSelection(liveCounter, { type: "page-reload" });
+
+      expect(
+        nextSelection(reloaded, {
+          type: "details-received",
+          instanceId: 1,
+          details: counterDetails,
+        }),
+      ).toEqual({ status: "none" });
+    });
+
+    it("does not carry details over to a node with the same ID", () => {
+      const reloaded = nextSelection(liveCounter, { type: "page-reload" });
+
+      expect(
+        nextSelection(reloaded, { type: "select", instanceId: 1, name: "App" }),
+      ).toEqual({ status: "loading", instanceId: 1, name: "App" });
+    });
+  });
+
+  describe("panel close", () => {
+    it.each(everySelection)("leaves nothing selected after %s", (_label, selection) => {
+      expect(nextSelection(selection, { type: "panel-close" })).toEqual({
+        status: "none",
+      });
+    });
+  });
+
+  describe("unexpected disconnect", () => {
+    it.each(everySelection)("keeps %s", (_label, selection) => {
+      expect(
+        nextSelection(selection, { type: "unexpected-disconnect" }),
+      ).toEqual(selection);
+    });
+  });
+
   describe("hidden", () => {
     const treeWithCounter: TreeNode = {
       name: "App",

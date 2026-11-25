@@ -12,6 +12,9 @@ export type Selection =
 export type SelectionEvent =
   | ({ type: "select" } & NodeRef)
   | { type: "deselect" }
+  | { type: "page-reload" }
+  | { type: "panel-close" }
+  | { type: "unexpected-disconnect" }
   | {
       type: "details-received";
       instanceId: number | null;
@@ -34,7 +37,12 @@ export const nextSelection = (
     }
 
     case "deselect":
+    case "page-reload":
+    case "panel-close":
       return NOTHING_SELECTED;
+
+    case "unexpected-disconnect":
+      return selection;
 
     case "details-received": {
       if (

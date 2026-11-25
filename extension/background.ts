@@ -1,4 +1,9 @@
-import type { BackendPayload, BridgeSnapshot, Message } from "./backend/types";
+import type {
+  BackendPayload,
+  BridgeSnapshot,
+  Message,
+  PanelCommand,
+} from "./backend/types";
 
 /**
  * Map of active port connections indexed by tab ID.
@@ -14,6 +19,14 @@ const allowedMsgSources = ["react-map-content-script"];
 
 const postToPanel = (port: chrome.runtime.Port, payload: BackendPayload) => {
   port.postMessage({ source: "react-map-backend", payload });
+};
+
+const sendToPage = (tabId: number, message: unknown) => {
+  chrome.tabs.sendMessage(tabId, message, () => {
+    if (chrome.runtime.lastError) {
+      return;
+    }
+  });
 };
 
 const handleConnection = (port: chrome.runtime.Port) => {
@@ -39,11 +52,7 @@ const handleConnection = (port: chrome.runtime.Port) => {
     }
 
     if (message.source === "react-map-panel" && message.payload !== "init") {
-      chrome.tabs.sendMessage(tabId, message, () => {
-        if (chrome.runtime.lastError) {
-          return;
-        }
-      });
+      sendToPage(tabId, message);
       return;
     }
 
@@ -52,7 +61,24 @@ const handleConnection = (port: chrome.runtime.Port) => {
 
   const portDisconnectListener = () => {
     port.onMessage.removeListener(portMessageListener);
+    // A retry replaces the port before dropping the old one.
+    if (connections[tabId] !== port) return;
+
+    // An unexpected disconnect is this worker stopping, which never gets here,
+    // so the panel was closed. The panel cannot say so itself: Chrome does not
+    // deliver messages it posts while closing.
     delete connections[tabId];
+    if (cache[tabId]) {
+      cache[tabId] = {
+        ...cache[tabId],
+        selectedNode: null,
+        selectedInstanceId: null,
+      };
+    }
+    sendToPage(tabId, {
+      source: "react-map-panel",
+      payload: { type: "panel-close" } satisfies PanelCommand,
+    });
     console.log(`tab ${tabId} disconnected`);
   };
 
@@ -88,6 +114,13 @@ const handleMessage = (
     senderTabId !== undefined
   ) {
     const payload = message.payload as unknown as BackendPayload;
+
+    if (payload.mode === "page-load") {
+      // The panel receives this message itself.
+      delete cache[senderTabId];
+      return;
+    }
+
     const existingSnapshot = cache[senderTabId] ?? {
       tree: null,
       selectedNode: null,
