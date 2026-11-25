@@ -5,10 +5,10 @@ export interface SidebarProps {
   onSetOrientation: (orientation: TreeOrientation) => void;
   nodeSpacing: NodeSpacing;
   onNodeSpacingChange: (value: number, axis: "x" | "y") => void;
-  hoveredNode?: InspectableNode;
-  lockedNodeUnavailable?: boolean;
-  lockedNodePath: string | null;
-  onLockNodeChange: (nodePath: string | null) => void;
+  selectedNode?: InspectableNode;
+  selectedNodeUnmounted?: boolean;
+  selectedNodePath: string | null;
+  onSelectedNodeChange: (nodePath: string | null) => void;
   treeFilters: TreeFilters;
   onFilterChange: (filterName: keyof TreeFilters, value: boolean) => void;
   searchValue: string;

@@ -11,10 +11,16 @@ export function useBridgeConnection() {
   const timeoutRef = useRef<number | null>(null);
   const bootstrapTimerRef = useRef<number | null>(null);
 
-  const [currentFiberTree, setCurrentFiberTree] = useState<TreeNode | null>(null);
-  const [nodeDetailCache, setNodeDetailCache] = useState<Record<string, TreeNode>>({});
-  const [lockedNodeData, setLockedNodeData] = useState<TreeNode | null>(null);
-  const [lockedNodePath, setLockedNodePath] = useState<string | null>(null);
+  const [currentFiberTree, setCurrentFiberTree] = useState<TreeNode | null>(
+    null,
+  );
+  const [nodeDetailCache, setNodeDetailCache] = useState<
+    Record<string, TreeNode>
+  >({});
+  const [selectedNodeData, setSelectedNodeData] = useState<TreeNode | null>(
+    null,
+  );
+  const [selectedNodePath, setSelectedNodePath] = useState<string | null>(null);
   const [status, setStatus] = useState<PanelStatus>("loading");
   const [statusMessage, setStatusMessage] = useState(
     "Waiting for a React tree from the inspected page.",
@@ -56,23 +62,23 @@ export function useBridgeConnection() {
           setStatusMessage("");
         }
 
-        const nextLockedNodePath = fiberSnapshot.lockedNodePath;
-        if (typeof nextLockedNodePath === "string") {
-          const lockedNode = fiberSnapshot.lockedNode;
-          if (lockedNode) {
+        const nextSelectedNodePath = fiberSnapshot.selectedNodePath;
+        if (typeof nextSelectedNodePath === "string") {
+          const selectedNode = fiberSnapshot.selectedNode;
+          if (selectedNode) {
             setNodeDetailCache((prev) => ({
               ...prev,
-              [nextLockedNodePath]: lockedNode as unknown as TreeNode,
+              [nextSelectedNodePath]: selectedNode as unknown as TreeNode,
             }));
-            setLockedNodeData(lockedNode as unknown as TreeNode);
+            setSelectedNodeData(selectedNode as unknown as TreeNode);
           } else {
-            setLockedNodeData(null);
+            setSelectedNodeData(null);
           }
 
-          setLockedNodePath(nextLockedNodePath);
+          setSelectedNodePath(nextSelectedNodePath);
         } else if (fiberSnapshot.tree) {
-          setLockedNodeData((prev) => prev);
-          setLockedNodePath((prev) => prev);
+          setSelectedNodeData((prev) => prev);
+          setSelectedNodePath((prev) => prev);
         } else {
           setCurrentFiberTree(null);
           setStatus("no-react");
@@ -101,18 +107,18 @@ export function useBridgeConnection() {
     portRef.current = createdPort;
   }, [clearConnectionTimeout]);
 
-  const handleLockNodeChange = useCallback(
+  const handleSelectedNodeChange = useCallback(
     (nodePath: string | null) => {
       if (!portRef.current) {
         return;
       }
 
       if (nodePath === null) {
-        setLockedNodeData(null);
-        setLockedNodePath(null);
+        setSelectedNodeData(null);
+        setSelectedNodePath(null);
       } else {
-        setLockedNodePath(nodePath);
-        setLockedNodeData(nodeDetailCache[nodePath] ?? null);
+        setSelectedNodePath(nodePath);
+        setSelectedNodeData(nodeDetailCache[nodePath] ?? null);
       }
 
       portRef.current.postMessage({
@@ -120,10 +126,10 @@ export function useBridgeConnection() {
         payload:
           nodePath === null
             ? {
-                type: "unlock-node",
+                type: "deselect-node",
               }
             : {
-                type: "lock-node",
+                type: "select-node",
                 nodePath,
               },
       });
@@ -156,11 +162,11 @@ export function useBridgeConnection() {
 
   return {
     currentFiberTree,
-    lockedNodeData,
-    lockedNodePath,
+    selectedNodeData,
+    selectedNodePath,
     status,
     statusMessage,
-    handleLockNodeChange,
+    handleSelectedNodeChange,
     handleRetry,
   };
 }

@@ -1,8 +1,8 @@
 import { getValueTypeClass, renderValue } from "@/utils";
 import type { PropsPanelProps } from "./PropsPanel.types";
 
-export const PropsPanel = ({ hoveredNode }: PropsPanelProps) => {
-  const props = hoveredNode?.props ? hoveredNode.props : null;
+export const PropsPanel = ({ selectedNode }: PropsPanelProps) => {
+  const props = selectedNode?.props ? selectedNode.props : null;
   return (
     <div className="flex flex-col px-4">
       <p className="font-bold">Props</p>

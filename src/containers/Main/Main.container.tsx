@@ -13,16 +13,16 @@ import type { InspectableNode, TreeNode } from "@/types";
 
 export interface MainContainerProps {
   data: TreeNode;
-  lockedNodeData?: InspectableNode;
-  lockedNodePath?: string | null;
-  onLockNodeChange: (nodePath: string | null) => void;
+  selectedNodeData?: InspectableNode;
+  selectedNodePath?: string | null;
+  onSelectedNodeChange: (nodePath: string | null) => void;
 }
 
 export const MainContainer = ({
   data,
-  lockedNodeData,
-  lockedNodePath,
-  onLockNodeChange,
+  selectedNodeData,
+  selectedNodePath,
+  onSelectedNodeChange,
 }: MainContainerProps) => {
   const treeRef = useRef<TreeType>(null);
   const [hoveredNode, setHoveredNode] = useState<TreeNode | null>(null);
@@ -55,9 +55,9 @@ export const MainContainer = ({
     setHoveredNode(node);
   };
 
-  const isLockActive = typeof lockedNodePath === "string";
-  const lockedNodeUnavailable = isLockActive && lockedNodeData === null;
-  const activeNode = isLockActive ? lockedNodeData : hoveredNode;
+  const hasSelectedNode = typeof selectedNodePath === "string";
+  const selectedNodeUnmounted = hasSelectedNode && selectedNodeData === null;
+  const inspectedNode = hasSelectedNode ? selectedNodeData : hoveredNode;
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -81,10 +81,10 @@ export const MainContainer = ({
             onSetOrientation={handleSetOrientation}
             nodeSpacing={nodeSpacing}
             onNodeSpacingChange={handleNodeSpacingChange}
-            hoveredNode={activeNode}
-            lockedNodeUnavailable={lockedNodeUnavailable}
-            lockedNodePath={lockedNodePath ?? null}
-            onLockNodeChange={onLockNodeChange}
+            selectedNode={inspectedNode}
+            selectedNodeUnmounted={selectedNodeUnmounted}
+            selectedNodePath={selectedNodePath ?? null}
+            onSelectedNodeChange={onSelectedNodeChange}
             treeFilters={treeFilters}
             onFilterChange={handleFilterChange}
             searchValue={searchValue}

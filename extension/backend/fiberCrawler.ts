@@ -150,7 +150,7 @@ export const traverseFiberMinimal = (
 };
 
 /**
- * Serializes state and props for a single locked fiber node.
+ * Serializes state and props for the selected fiber node.
  */
 export const serializeNodeDetail = (
   node: Fiber | null,

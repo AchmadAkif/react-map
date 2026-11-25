@@ -83,21 +83,21 @@ const handleMessage = (
     const payload = message.payload as unknown as BackendPayload;
     const existingSnapshot = cache[senderTabId] ?? {
       tree: null,
-      lockedNode: null,
-      lockedNodePath: null,
+      selectedNode: null,
+      selectedNodePath: null,
     };
 
     if (payload.mode === "tree-minimal") {
       cache[senderTabId] = {
         tree: payload.tree,
-        lockedNode: existingSnapshot.lockedNode,
-        lockedNodePath: existingSnapshot.lockedNodePath,
+        selectedNode: existingSnapshot.selectedNode,
+        selectedNodePath: existingSnapshot.selectedNodePath,
       };
     } else {
       cache[senderTabId] = {
         ...existingSnapshot,
-        lockedNode: payload.node,
-        lockedNodePath: payload.nodePath,
+        selectedNode: payload.node,
+        selectedNodePath: payload.nodePath,
       };
     }
 

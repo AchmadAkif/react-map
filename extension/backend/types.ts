@@ -27,17 +27,17 @@ export type BackendPayload =
 
 export type PanelCommand =
   | {
-      type: "lock-node";
+      type: "select-node";
       nodePath: string | null;
     }
   | {
-      type: "unlock-node";
+      type: "deselect-node";
     };
 
 export type BridgeSnapshot = {
   tree: MinimalFiberNode | null;
-  lockedNode: SerializedFiberNode | null;
-  lockedNodePath: string | null;
+  selectedNode: SerializedFiberNode | null;
+  selectedNodePath: string | null;
 };
 
 export type Message = {

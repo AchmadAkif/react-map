@@ -2,8 +2,8 @@ import { getValueTypeClass, renderValue } from "@/utils";
 import { StateBadge } from "../StateBadge";
 import type { StatePanelProps } from "./StatePanel.types";
 
-export const StatePanel = ({ hoveredNode }: StatePanelProps) => {
-  const hooks = hoveredNode?.state;
+export const StatePanel = ({ selectedNode }: StatePanelProps) => {
+  const hooks = selectedNode?.state;
   return (
     <div className="flex flex-col px-4">
       <p className="font-bold">States</p>

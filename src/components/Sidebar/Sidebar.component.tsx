@@ -10,10 +10,10 @@ export const Sidebar = ({
   onSetOrientation,
   nodeSpacing,
   onNodeSpacingChange,
-  hoveredNode,
-  lockedNodeUnavailable,
-  lockedNodePath,
-  onLockNodeChange,
+  selectedNode,
+  selectedNodeUnmounted,
+  selectedNodePath,
+  onSelectedNodeChange,
   treeFilters,
   onFilterChange,
   searchValue,
@@ -42,10 +42,10 @@ export const Sidebar = ({
       />
       <Separator className="my-2" />
       <ComponentDetails
-        hoveredNode={hoveredNode ?? null}
-        lockedNodeUnavailable={lockedNodeUnavailable}
-        lockedNodePath={lockedNodePath}
-        onLockNodeChange={onLockNodeChange}
+        selectedNode={selectedNode ?? null}
+        selectedNodeUnmounted={selectedNodeUnmounted}
+        selectedNodePath={selectedNodePath}
+        onSelectedNodeChange={onSelectedNodeChange}
       />
     </div>
   );
