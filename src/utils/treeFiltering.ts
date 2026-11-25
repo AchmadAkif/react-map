@@ -13,13 +13,21 @@ export const routerComponentNames = [
 
 export const reduxComponentNames = ["provider", "connect", "redux"];
 
+/** Lowercased node types, as labelled by the backend, that are DOM nodes. */
+const domNodeTypes = [
+  "hostcomponent",
+  "text",
+  "hosthoistable",
+  "hostsingleton",
+];
+
 export const shouldHideNode = (node: TreeNode, filters: TreeFilters): boolean => {
   const componentName = node.name.toLowerCase();
   const nodeType = String(node.attributes?.nodeType ?? "").toLowerCase();
 
   if (
     filters.hideDomComponent &&
-    (node.isDOM === true || nodeType === "hostcomponent")
+    (node.isDOM === true || domNodeTypes.includes(nodeType))
   ) {
     return true;
   }

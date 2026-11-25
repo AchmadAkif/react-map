@@ -74,6 +74,65 @@ describe("treeFiltering utils", () => {
     );
   });
 
+  it.each([
+    ["element", "div", "HostComponent"],
+    ["text", "Anonymous", "Text"],
+    ["hoistable", "title", "HostHoistable"],
+    ["singleton", "body", "HostSingleton"],
+  ])(
+    "hides %s nodes and keeps their component descendants in place",
+    (_kind, name, nodeType) => {
+      const tree: TreeNode = {
+        name: "App",
+        nodePath: "0",
+        attributes: { nodeType: "FunctionComponent" },
+        children: [
+          { name: "Before", attributes: { nodeType: "FunctionComponent" } },
+          {
+            name,
+            attributes: { nodeType },
+            children: [
+              {
+                name: "Inside",
+                nodePath: "0/1/0",
+                attributes: { nodeType: "FunctionComponent" },
+              },
+            ],
+          },
+          { name: "After", attributes: { nodeType: "FunctionComponent" } },
+        ],
+      };
+
+      const filtered = filterTreeData(tree, {
+        ...defaultFilters,
+        hideDomComponent: true,
+      });
+
+      expect(filtered?.children?.map((child) => child.name)).toEqual([
+        "Before",
+        "Inside",
+        "After",
+      ]);
+      expect(filtered?.children?.[1].nodePath).toBe("0/1/0");
+      expect(filterTreeData(tree, defaultFilters)).toEqual(tree);
+    },
+  );
+
+  it.each([
+    ["Anonymous", "Fragment"],
+    ["Theme.Provider", "ContextProvider"],
+    ["Anonymous", "SuspenseComponent"],
+    ["Anonymous", "HostPortal"],
+    ["Text", "FunctionComponent"],
+  ])("does not treat %s (%s) as a DOM node", (name, nodeType) => {
+    expect(
+      shouldHideNode(
+        { name, isDOM: false, attributes: { nodeType } },
+        { ...defaultFilters, hideDomComponent: true },
+      ),
+    ).toBe(false);
+  });
+
   it("should hide router components when hideRouterComponent is true", () => {
     const routerNode: TreeNode = {
       name: "NavLink",
