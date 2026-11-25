@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState, useLayoutEffect, useEffect } from "react";
 import Tree from "react-d3-tree";
+import { TreeNodeElement } from "../TreeNodeElement";
 import { toRawNodeDatum } from "@/types/treeAdapter";
 import type { HierarchyTreeProps } from "./HierarchyTree.types";
 
@@ -59,6 +60,15 @@ export function HierarchyTree({
         data={rawNodeData}
         orientation={treeOrientation}
         nodeSize={nodeSize}
+        renderCustomNodeElement={(nodeProps) => (
+          <TreeNodeElement
+            nodeDatum={nodeProps.nodeDatum}
+            orientation={treeOrientation}
+            toggleNode={nodeProps.toggleNode}
+            onNodeMouseOver={nodeProps.onNodeMouseOver}
+            onNodeMouseOut={nodeProps.onNodeMouseOut}
+          />
+        )}
         onNodeMouseOver={(node) => {
           if (handleOnNodeHover) handleOnNodeHover(node.data as unknown as import("@/types").TreeNode);
         }}

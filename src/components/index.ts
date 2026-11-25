@@ -1,5 +1,6 @@
 export * from "./Sidebar";
 export * from "./HierarchyTree";
+export * from "./TreeNodeElement";
 export * from "./ComponentDetails";
 export * from "./SearchBar";
 export * from "./PreferencesCollapsible";
