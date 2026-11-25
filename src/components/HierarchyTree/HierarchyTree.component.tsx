@@ -66,7 +66,6 @@ export function HierarchyTree({
             orientation={treeOrientation}
             toggleNode={nodeProps.toggleNode}
             onNodeMouseOver={nodeProps.onNodeMouseOver}
-            onNodeMouseOut={nodeProps.onNodeMouseOut}
           />
         )}
         onNodeMouseOver={(node) => {

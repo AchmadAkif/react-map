@@ -3,7 +3,7 @@ import type { TreeOrientation } from "@/types";
 
 export interface TreeNodeElementProps extends Pick<
   CustomNodeElementProps,
-  "nodeDatum" | "toggleNode" | "onNodeMouseOver" | "onNodeMouseOut"
+  "nodeDatum" | "toggleNode" | "onNodeMouseOver"
 > {
   orientation: TreeOrientation;
 }

@@ -12,7 +12,6 @@ export function TreeNodeElement({
   orientation,
   toggleNode,
   onNodeMouseOver,
-  onNodeMouseOut,
 }: TreeNodeElementProps) {
   const { name, attributes, children } = nodeDatum;
   const hasChildren = Boolean(children?.length);
@@ -27,6 +26,7 @@ export function TreeNodeElement({
   const handleControlKeyDown = (event: KeyboardEvent) => {
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
+    if (event.repeat) return;
     toggleNode();
   };
 
@@ -35,7 +35,6 @@ export function TreeNodeElement({
       <circle
         r={NODE_RADIUS}
         onMouseOver={onNodeMouseOver}
-        onMouseOut={onNodeMouseOut}
       />
       <g className="rd3t-label">
         <text className="rd3t-label__title" textAnchor="start" x={LABEL_X}>
