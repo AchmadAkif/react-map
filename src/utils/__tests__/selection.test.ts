@@ -241,11 +241,14 @@ describe("selection rules", () => {
   ];
 
   describe("page reload", () => {
-    it.each(everySelection)("leaves nothing selected after %s", (_label, selection) => {
-      expect(nextSelection(selection, { type: "page-reload" })).toEqual({
-        status: "none",
-      });
-    });
+    it.each(everySelection)(
+      "leaves nothing selected after %s",
+      (_label, selection) => {
+        expect(nextSelection(selection, { type: "page-reload" })).toEqual({
+          status: "none",
+        });
+      },
+    );
 
     it("ignores details from before the reload", () => {
       const reloaded = nextSelection(liveCounter, { type: "page-reload" });
@@ -269,11 +272,14 @@ describe("selection rules", () => {
   });
 
   describe("panel close", () => {
-    it.each(everySelection)("leaves nothing selected after %s", (_label, selection) => {
-      expect(nextSelection(selection, { type: "panel-close" })).toEqual({
-        status: "none",
-      });
-    });
+    it.each(everySelection)(
+      "leaves nothing selected after %s",
+      (_label, selection) => {
+        expect(nextSelection(selection, { type: "panel-close" })).toEqual({
+          status: "none",
+        });
+      },
+    );
   });
 
   describe("unexpected disconnect", () => {

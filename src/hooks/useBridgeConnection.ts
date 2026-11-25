@@ -17,7 +17,6 @@ const NO_REACT_MESSAGE =
 
 const inspectedTabId = () => chrome.devtools.inspectedWindow.tabId;
 
-
 export function useBridgeConnection() {
   const portRef = useRef<chrome.runtime.Port | null>(null);
   const timeoutRef = useRef<number | null>(null);
@@ -164,7 +163,7 @@ export function useBridgeConnection() {
     bootstrapTimerRef.current = window.setTimeout(() => {
       connectToBridge();
       // A panel that closed while disconnected could not tell the page.
-      sendCommand({ type: "deselect-node" });
+      sendCommand({ type: "panel-close" });
     }, 0);
 
     return () => {

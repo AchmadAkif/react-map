@@ -21,8 +21,8 @@ const postToPanel = (port: chrome.runtime.Port, payload: BackendPayload) => {
   port.postMessage({ source: "react-map-backend", payload });
 };
 
-const sendToPage = (tabId: number, message: unknown) => {
-  chrome.tabs.sendMessage(tabId, message, () => {
+const sendToPage = (tabId: number, payload: Message["payload"] | PanelCommand) => {
+  chrome.tabs.sendMessage(tabId, { source: "react-map-panel", payload }, () => {
     if (chrome.runtime.lastError) {
       return;
     }
@@ -52,7 +52,7 @@ const handleConnection = (port: chrome.runtime.Port) => {
     }
 
     if (message.source === "react-map-panel" && message.payload !== "init") {
-      sendToPage(tabId, message);
+      sendToPage(tabId, message.payload);
       return;
     }
 
@@ -75,10 +75,7 @@ const handleConnection = (port: chrome.runtime.Port) => {
         selectedInstanceId: null,
       };
     }
-    sendToPage(tabId, {
-      source: "react-map-panel",
-      payload: { type: "panel-close" } satisfies PanelCommand,
-    });
+    sendToPage(tabId, { type: "panel-close" });
     console.log(`tab ${tabId} disconnected`);
   };
 
