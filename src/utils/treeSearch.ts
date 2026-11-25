@@ -45,36 +45,3 @@ export const listSelectableNodes = (node: TreeNode | null): NodeRef[] => {
     ? descendants
     : [{ name, instanceId }, ...descendants];
 };
-
-export const findNodeByInstanceId = (
-  instanceId: number,
-  treeData: TreeNode[] | null,
-): TreeNode | null => {
-  if (!treeData || treeData.length === 0) {
-    return null;
-  }
-
-  const traverse = (node: TreeNode): TreeNode | null => {
-    if (node.instanceId === instanceId) {
-      return node;
-    }
-
-    for (const child of node.children ?? []) {
-      const found = traverse(child);
-      if (found) {
-        return found;
-      }
-    }
-
-    return null;
-  };
-
-  for (const root of treeData) {
-    const found = traverse(root);
-    if (found) {
-      return found;
-    }
-  }
-
-  return null;
-};

@@ -324,7 +324,7 @@ describe("fiberCrawler", () => {
 
       // Hot reload keeps the fiber pair and swaps the component function.
       const second = createMockFiber({
-        type: { displayName: "Counter" },
+        type: { displayName: "EditedCounter" },
         alternate: first,
       });
       first.alternate = second;

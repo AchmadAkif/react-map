@@ -18,9 +18,6 @@ export type SelectionEvent =
 
 export const NOTHING_SELECTED: Selection = { status: "none" };
 
-/**
- * Applies an event to the current selection.
- */
 export const nextSelection = (
   selection: Selection,
   event: SelectionEvent,

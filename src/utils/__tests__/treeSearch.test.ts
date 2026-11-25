@@ -1,48 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { findNodeById, findNodeByInstanceId, listSelectableNodes } from "../treeSearch";
-import type { TreeNode } from "@/types";
+import { findNodeById, listSelectableNodes } from "../treeSearch";
 import type { TreeNodeDatum } from "react-d3-tree";
 
 describe("treeSearch utils", () => {
-  const treeData: TreeNode[] = [
-    {
-      name: "App",
-      instanceId: 1,
-      children: [
-        {
-          name: "Sidebar",
-          instanceId: 2,
-          children: [
-            {
-              name: "Button",
-              instanceId: 3,
-            },
-          ],
-        },
-        {
-          name: "Content",
-          instanceId: 4,
-        },
-      ],
-    },
-  ];
-
-  it("finds node by instanceId in TreeNode hierarchy", () => {
-    const found = findNodeByInstanceId(3, treeData);
-    expect(found).not.toBeNull();
-    expect(found?.name).toBe("Button");
-  });
-
-  it("returns null if instanceId does not exist", () => {
-    const notFound = findNodeByInstanceId(99, treeData);
-    expect(notFound).toBeNull();
-  });
-
-  it("returns null if empty treeData passed to findNodeByInstanceId", () => {
-    expect(findNodeByInstanceId(1, null)).toBeNull();
-    expect(findNodeByInstanceId(1, [])).toBeNull();
-  });
-
   it("finds node by id using react-d3-tree TreeNodeDatum", () => {
     const d3Nodes: TreeNodeDatum[] = [
       {
