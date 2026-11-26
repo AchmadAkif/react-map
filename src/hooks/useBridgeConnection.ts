@@ -17,6 +17,8 @@ import {
   NOTHING_COLLAPSED,
   NOTHING_SELECTED,
   type BranchId,
+  type Selection,
+  type SelectionEvent,
 } from "@/utils";
 import type { NodeRef, TreeNode } from "@/types";
 
@@ -49,6 +51,17 @@ const clearTimer = (timerRef: RefObject<number | null>) => {
   }
 };
 
+const selectionSyncCommand = (selection: Selection): PanelCommand => {
+  switch (selection.status) {
+    case "loading":
+    case "live":
+      return { type: "select-node", instanceId: selection.instanceId };
+    case "none":
+    case "unmounted":
+      return { type: "deselect-node" };
+  }
+};
+
 type ActivePort = {
   port: chrome.runtime.Port;
   cleanup: () => void;
@@ -70,6 +83,11 @@ export function useBridgeConnection() {
     nextSelection,
     NOTHING_SELECTED,
   );
+  const selectionRef = useRef<Selection>(NOTHING_SELECTED);
+  const applySelection = useCallback((event: SelectionEvent) => {
+    selectionRef.current = nextSelection(selectionRef.current, event);
+    dispatchSelection(event);
+  }, []);
   const [collapsedBranches, dispatchCollapse] = useReducer(
     nextCollapsedBranches,
     NOTHING_COLLAPSED,
@@ -142,7 +160,7 @@ export function useBridgeConnection() {
         ) {
           const payload = message.payload as unknown as BackendPayload;
           if (payload.mode === "node-detail") {
-            dispatchSelection({
+            applySelection({
               type: "details-received",
               instanceId: payload.instanceId,
               details: payload.node as unknown as TreeNode | null,
@@ -184,7 +202,7 @@ export function useBridgeConnection() {
           return;
         }
 
-        dispatchSelection({ type: "unexpected-disconnect" });
+        applySelection({ type: "unexpected-disconnect" });
         scheduleReconnect();
       };
 
@@ -200,6 +218,13 @@ export function useBridgeConnection() {
           source: "react-map-panel",
           payload: "init",
         });
+
+        if (isReconnect) {
+          createdPort.postMessage({
+            source: "react-map-panel",
+            payload: selectionSyncCommand(selectionRef.current),
+          });
+        }
       } catch (error) {
         cleanup();
         activePortRef.current = null;
@@ -227,7 +252,7 @@ export function useBridgeConnection() {
       previousActive?.cleanup();
       previousActive?.port.disconnect();
     },
-    [markExtensionReloaded, scheduleReconnect],
+    [applySelection, markExtensionReloaded, scheduleReconnect],
   );
 
   useEffect(() => {
@@ -257,16 +282,16 @@ export function useBridgeConnection() {
 
   const handleSelectNode = useCallback(
     ({ instanceId, name }: NodeRef) => {
-      dispatchSelection({ type: "select", instanceId, name });
+      applySelection({ type: "select", instanceId, name });
       sendCommand({ type: "select-node", instanceId });
     },
-    [sendCommand],
+    [applySelection, sendCommand],
   );
 
   const handleDeselectNode = useCallback(() => {
-    dispatchSelection({ type: "deselect" });
+    applySelection({ type: "deselect" });
     sendCommand({ type: "deselect-node" });
-  }, [sendCommand]);
+  }, [applySelection, sendCommand]);
 
   const handleToggleBranch = useCallback((instanceId: BranchId) => {
     dispatchCollapse({ type: "toggle", instanceId });
@@ -289,7 +314,7 @@ export function useBridgeConnection() {
       if (payload.mode !== "page-load") return;
 
       // The old tree goes too: its instance IDs mean nothing to the new page.
-      dispatchSelection({ type: "page-reload" });
+      applySelection({ type: "page-reload" });
       dispatchCollapse({ type: "page-reload" });
       setCurrentFiberTree(null);
       setStatus("loading");
@@ -305,7 +330,7 @@ export function useBridgeConnection() {
 
     chrome.runtime.onMessage.addListener(onPageLoad);
     return () => chrome.runtime.onMessage.removeListener(onPageLoad);
-  }, []);
+  }, [applySelection]);
 
   useEffect(() => {
     bootstrapTimerRef.current = window.setTimeout(() => {
@@ -319,9 +344,9 @@ export function useBridgeConnection() {
       clearTimer(reconnectTimerRef);
       clearTimer(timeoutRef);
       detachActivePort(true);
-      dispatchSelection({ type: "panel-close" });
+      applySelection({ type: "panel-close" });
     };
-  }, [connectToBridge, detachActivePort, sendCommand]);
+  }, [applySelection, connectToBridge, detachActivePort, sendCommand]);
 
   const handleRetry = useCallback(() => {
     setCurrentFiberTree(null);

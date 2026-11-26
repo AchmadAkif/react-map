@@ -234,6 +234,10 @@ describe("useBridgeConnection", () => {
     const reconnectedPort = fake.ports[1];
     expect(reconnectedPort.postedMessages).toEqual([
       { source: "react-map-panel", payload: "init" },
+      {
+        source: "react-map-panel",
+        payload: { type: "select-node", instanceId: 2 },
+      },
     ]);
 
     act(() => {
@@ -310,6 +314,10 @@ describe("useBridgeConnection", () => {
     // Reconnection must not send panel-close.
     expect(fake.ports[1].postedMessages).toEqual([
       { source: "react-map-panel", payload: "init" },
+      {
+        source: "react-map-panel",
+        payload: { type: "select-node", instanceId: 2 },
+      },
     ]);
     expect(result.current.status).toBe("success");
     expect(result.current.currentFiberTree).toEqual(initialTree);
@@ -569,5 +577,250 @@ describe("useBridgeConnection", () => {
 
     expect(fake.ports).toHaveLength(2);
     expect(result.current.status).toBe("success");
+  });
+
+  it("loads details for a node selected while disconnected after reconnection", () => {
+    const fake = createFakeChrome();
+    vi.stubGlobal("chrome", fake.chromeMock);
+
+    const { result } = renderHook(() => useBridgeConnection());
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    const firstPort = fake.ports[0];
+    const footerDetails: TreeNode = {
+      name: "Footer",
+      instanceId: 3,
+      props: { label: "v1" },
+      state: null,
+    };
+
+    act(() => {
+      fake.sendBackendPayload(firstPort, {
+        mode: "tree-minimal",
+        tree: updatedTree as never,
+      });
+    });
+
+    act(() => {
+      firstPort.dropFromBackground();
+      result.current.handleSelectNode({ instanceId: 3, name: "Footer" });
+    });
+
+    expect(result.current.selection).toEqual({
+      status: "loading",
+      instanceId: 3,
+      name: "Footer",
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(fake.ports).toHaveLength(2);
+    const reconnectedPort = fake.ports[1];
+    expect(reconnectedPort.postedMessages).toEqual([
+      { source: "react-map-panel", payload: "init" },
+      {
+        source: "react-map-panel",
+        payload: { type: "select-node", instanceId: 3 },
+      },
+    ]);
+
+    act(() => {
+      fake.sendBackendPayload(reconnectedPort, {
+        mode: "node-detail",
+        instanceId: 3,
+        node: footerDetails as never,
+      });
+    });
+
+    expect(result.current.selection).toEqual({
+      status: "live",
+      instanceId: 3,
+      name: "Footer",
+      details: footerDetails,
+    });
+  });
+
+  it("keeps a node deselected and tells the page to stop sending details after reconnection", () => {
+    const fake = createFakeChrome();
+    vi.stubGlobal("chrome", fake.chromeMock);
+
+    const { result } = renderHook(() => useBridgeConnection());
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    const firstPort = fake.ports[0];
+
+    act(() => {
+      fake.sendBackendPayload(firstPort, {
+        mode: "tree-minimal",
+        tree: initialTree as never,
+      });
+      result.current.handleSelectNode({ instanceId: 2, name: "Counter" });
+      fake.sendBackendPayload(firstPort, {
+        mode: "node-detail",
+        instanceId: 2,
+        node: counterDetailsV1 as never,
+      });
+    });
+
+    act(() => {
+      firstPort.dropFromBackground();
+      result.current.handleDeselectNode();
+    });
+
+    expect(result.current.selection).toEqual({ status: "none" });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(fake.ports).toHaveLength(2);
+    const reconnectedPort = fake.ports[1];
+    expect(reconnectedPort.postedMessages).toEqual([
+      { source: "react-map-panel", payload: "init" },
+      { source: "react-map-panel", payload: { type: "deselect-node" } },
+    ]);
+
+    act(() => {
+      fake.sendBackendPayload(reconnectedPort, {
+        mode: "node-detail",
+        instanceId: 2,
+        node: counterDetailsV2 as never,
+      });
+      fake.sendBackendPayload(reconnectedPort, {
+        mode: "node-detail",
+        instanceId: null,
+        node: null,
+      });
+    });
+
+    expect(result.current.selection).toEqual({ status: "none" });
+  });
+
+  it("keeps an unmounted node unmounted with its last details and deselects it on the page after reconnection", () => {
+    const fake = createFakeChrome();
+    vi.stubGlobal("chrome", fake.chromeMock);
+
+    const { result } = renderHook(() => useBridgeConnection());
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    const firstPort = fake.ports[0];
+
+    act(() => {
+      fake.sendBackendPayload(firstPort, {
+        mode: "tree-minimal",
+        tree: initialTree as never,
+      });
+      result.current.handleSelectNode({ instanceId: 2, name: "Counter" });
+      fake.sendBackendPayload(firstPort, {
+        mode: "node-detail",
+        instanceId: 2,
+        node: counterDetailsV1 as never,
+      });
+      fake.sendBackendPayload(firstPort, {
+        mode: "node-detail",
+        instanceId: 2,
+        node: null,
+      });
+    });
+
+    expect(result.current.selection).toEqual({
+      status: "unmounted",
+      instanceId: 2,
+      name: "Counter",
+      details: counterDetailsV1,
+    });
+
+    act(() => {
+      firstPort.dropFromBackground();
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(fake.ports).toHaveLength(2);
+    const reconnectedPort = fake.ports[1];
+    expect(reconnectedPort.postedMessages).toEqual([
+      { source: "react-map-panel", payload: "init" },
+      { source: "react-map-panel", payload: { type: "deselect-node" } },
+    ]);
+
+    act(() => {
+      fake.sendBackendPayload(reconnectedPort, {
+        mode: "node-detail",
+        instanceId: null,
+        node: null,
+      });
+    });
+
+    expect(result.current.selection).toEqual({
+      status: "unmounted",
+      instanceId: 2,
+      name: "Counter",
+      details: counterDetailsV1,
+    });
+  });
+
+  it("leaves nothing selected when the page reloads while disconnected", () => {
+    const fake = createFakeChrome();
+    vi.stubGlobal("chrome", fake.chromeMock);
+
+    const { result } = renderHook(() => useBridgeConnection());
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    const firstPort = fake.ports[0];
+
+    act(() => {
+      fake.sendBackendPayload(firstPort, {
+        mode: "tree-minimal",
+        tree: initialTree as never,
+      });
+      result.current.handleSelectNode({ instanceId: 2, name: "Counter" });
+      fake.sendBackendPayload(firstPort, {
+        mode: "node-detail",
+        instanceId: 2,
+        node: counterDetailsV1 as never,
+      });
+    });
+
+    act(() => {
+      firstPort.dropFromBackground();
+      fake.sendPageLoad();
+    });
+
+    expect(result.current.selection).toEqual({ status: "none" });
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+
+    expect(fake.ports).toHaveLength(2);
+    const reconnectedPort = fake.ports[1];
+    expect(reconnectedPort.postedMessages).toEqual([
+      { source: "react-map-panel", payload: "init" },
+      { source: "react-map-panel", payload: { type: "deselect-node" } },
+    ]);
+
+    act(() => {
+      fake.sendBackendPayload(reconnectedPort, {
+        mode: "tree-minimal",
+        tree: updatedTree as never,
+      });
+    });
+
+    expect(result.current.status).toBe("success");
+    expect(result.current.currentFiberTree).toEqual(updatedTree);
+    expect(result.current.selection).toEqual({ status: "none" });
   });
 });
