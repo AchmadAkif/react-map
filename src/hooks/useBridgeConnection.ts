@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import type {
   BackendPayload,
   Message,
@@ -13,20 +20,48 @@ import {
 } from "@/utils";
 import type { NodeRef, TreeNode } from "@/types";
 
-export type PanelStatus = "success" | "loading" | "error" | "no-react";
+export type PanelStatus =
+  | "success"
+  | "loading"
+  | "error"
+  | "no-react"
+  | "extension-reloaded";
 
 const CONNECTION_TIMEOUT_MS = 5000;
+const RECONNECT_DELAY_MS = 100;
 
 const WAITING_MESSAGE = "Waiting for a React tree from the inspected page.";
 const NO_REACT_MESSAGE =
   "No React tree has been captured yet. React-Map reads the tree from React's commit hook, so trigger a React render if needed, then retry.";
+const EXTENSION_RELOADED_MESSAGE =
+  "The React-Map extension was reloaded. Close and reopen DevTools to reconnect.";
 
 const inspectedTabId = () => chrome.devtools.inspectedWindow.tabId;
+const isExtensionContextInvalidated = () => !chrome.runtime?.id;
+const isInvalidatedError = (error: unknown) =>
+  isExtensionContextInvalidated() ||
+  (error instanceof Error && /extension context invalidated/i.test(error.message));
+
+const clearTimer = (timerRef: RefObject<number | null>) => {
+  if (timerRef.current !== null) {
+    window.clearTimeout(timerRef.current);
+    timerRef.current = null;
+  }
+};
+
+type ActivePort = {
+  port: chrome.runtime.Port;
+  cleanup: () => void;
+};
 
 export function useBridgeConnection() {
-  const portRef = useRef<chrome.runtime.Port | null>(null);
+  const activePortRef = useRef<ActivePort | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const bootstrapTimerRef = useRef<number | null>(null);
+  const reconnectTimerRef = useRef<number | null>(null);
+  const connectRef = useRef<(options?: { isReconnect?: boolean }) => void>(
+    () => {},
+  );
 
   const [currentFiberTree, setCurrentFiberTree] = useState<TreeNode | null>(
     null,
@@ -42,88 +77,183 @@ export function useBridgeConnection() {
   const [status, setStatus] = useState<PanelStatus>("loading");
   const [statusMessage, setStatusMessage] = useState(WAITING_MESSAGE);
 
-  const clearConnectionTimeout = useCallback(() => {
-    if (timeoutRef.current !== null) {
-      window.clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+  const detachActivePort = useCallback((disconnect: boolean) => {
+    const active = activePortRef.current;
+    if (!active) return;
+    activePortRef.current = null;
+    active.cleanup();
+    if (disconnect) {
+      active.port.disconnect();
     }
   }, []);
 
-  const connectToBridge = useCallback(() => {
-    clearConnectionTimeout();
+  const markExtensionReloaded = useCallback(() => {
+    clearTimer(reconnectTimerRef);
+    clearTimer(timeoutRef);
+    detachActivePort(false);
+    setCurrentFiberTree(null);
+    setStatus("extension-reloaded");
+    setStatusMessage(EXTENSION_RELOADED_MESSAGE);
+  }, [detachActivePort]);
 
-    setStatus("loading");
-    setStatusMessage(WAITING_MESSAGE);
+  const scheduleReconnect = useCallback(() => {
+    clearTimer(reconnectTimerRef);
+    reconnectTimerRef.current = window.setTimeout(() => {
+      reconnectTimerRef.current = null;
+      connectRef.current({ isReconnect: true });
+    }, RECONNECT_DELAY_MS);
+  }, []);
 
-    const createdPort = chrome.runtime.connect({
-      name: inspectedTabId().toString(),
-    });
+  const connectToBridge = useCallback(
+    ({ isReconnect = false }: { isReconnect?: boolean } = {}) => {
+      clearTimer(reconnectTimerRef);
 
-    const onMessageListener = (message: Message) => {
-      if (
-        message.source === "react-map-backend" &&
-        typeof message.payload !== "string"
-      ) {
-        const payload = message.payload as unknown as BackendPayload;
-        if (payload.mode === "node-detail") {
-          dispatchSelection({
-            type: "details-received",
-            instanceId: payload.instanceId,
-            details: payload.node as unknown as TreeNode | null,
-          });
+      if (isExtensionContextInvalidated()) {
+        markExtensionReloaded();
+        return;
+      }
+
+      if (!isReconnect) {
+        clearTimer(timeoutRef);
+        setStatus("loading");
+        setStatusMessage(WAITING_MESSAGE);
+      }
+
+      let createdPort: chrome.runtime.Port;
+      try {
+        createdPort = chrome.runtime.connect({
+          name: inspectedTabId().toString(),
+        });
+      } catch (error) {
+        if (isInvalidatedError(error)) {
+          markExtensionReloaded();
+        } else {
+          scheduleReconnect();
+        }
+        return;
+      }
+
+      const onMessageListener = (message: Message) => {
+        if (activePortRef.current?.port !== createdPort) return;
+
+        if (
+          message.source === "react-map-backend" &&
+          typeof message.payload !== "string"
+        ) {
+          const payload = message.payload as unknown as BackendPayload;
+          if (payload.mode === "node-detail") {
+            dispatchSelection({
+              type: "details-received",
+              instanceId: payload.instanceId,
+              details: payload.node as unknown as TreeNode | null,
+            });
+            return;
+          }
+
+          if (payload.mode !== "tree-minimal") return;
+
+          clearTimer(timeoutRef);
+
+          const tree = payload.tree as unknown as TreeNode | null;
+          dispatchCollapse({ type: "tree-received", tree });
+
+          if (tree) {
+            setCurrentFiberTree(tree);
+            setStatus("success");
+            setStatusMessage("");
+          } else {
+            setCurrentFiberTree(null);
+            setStatus("no-react");
+            setStatusMessage(NO_REACT_MESSAGE);
+          }
+        }
+      };
+
+      const cleanup = () => {
+        createdPort.onMessage.removeListener(onMessageListener);
+        createdPort.onDisconnect.removeListener(onDisconnectListener);
+      };
+
+      const onDisconnectListener = () => {
+        cleanup();
+        if (activePortRef.current?.port !== createdPort) return;
+        activePortRef.current = null;
+
+        if (isExtensionContextInvalidated()) {
+          markExtensionReloaded();
           return;
         }
 
-        if (payload.mode !== "tree-minimal") return;
+        dispatchSelection({ type: "unexpected-disconnect" });
+        scheduleReconnect();
+      };
 
-        clearConnectionTimeout();
+      createdPort.onMessage.addListener(onMessageListener);
+      // Only fires when the other side drops the connection.
+      createdPort.onDisconnect.addListener(onDisconnectListener);
 
-        const tree = payload.tree as unknown as TreeNode | null;
-        dispatchCollapse({ type: "tree-received", tree });
+      const previousActive = activePortRef.current;
+      activePortRef.current = { port: createdPort, cleanup };
 
-        if (tree) {
-          setCurrentFiberTree(tree);
-          setStatus("success");
-          setStatusMessage("");
+      try {
+        createdPort.postMessage({
+          source: "react-map-panel",
+          payload: "init",
+        });
+      } catch (error) {
+        cleanup();
+        activePortRef.current = null;
+        previousActive?.cleanup();
+        previousActive?.port.disconnect();
+        if (isInvalidatedError(error)) {
+          markExtensionReloaded();
         } else {
+          scheduleReconnect();
+        }
+        return;
+      }
+
+      if (!isReconnect) {
+        timeoutRef.current = window.setTimeout(() => {
           setCurrentFiberTree(null);
-          setStatus("no-react");
-          setStatusMessage(NO_REACT_MESSAGE);
+          setStatus("error");
+          setStatusMessage(
+            "Timed out waiting for the inspected page to respond. React DevTools may be missing, the page may not use React, or the bridge may be blocked.",
+          );
+        }, CONNECTION_TIMEOUT_MS);
+      }
+
+      // Only after the new port took over, or it would count as a panel close.
+      previousActive?.cleanup();
+      previousActive?.port.disconnect();
+    },
+    [markExtensionReloaded, scheduleReconnect],
+  );
+
+  useEffect(() => {
+    connectRef.current = connectToBridge;
+  }, [connectToBridge]);
+
+  const sendCommand = useCallback(
+    (command: PanelCommand) => {
+      if (isExtensionContextInvalidated()) {
+        markExtensionReloaded();
+        return;
+      }
+
+      try {
+        activePortRef.current?.port.postMessage({
+          source: "react-map-panel",
+          payload: command,
+        });
+      } catch (error) {
+        if (isInvalidatedError(error)) {
+          markExtensionReloaded();
         }
       }
-    };
-
-    createdPort.onMessage.addListener(onMessageListener);
-    // Only fires when the other side drops the connection.
-    createdPort.onDisconnect.addListener(() => {
-      if (portRef.current !== createdPort) return;
-      portRef.current = null;
-      dispatchSelection({ type: "unexpected-disconnect" });
-    });
-    createdPort.postMessage({
-      source: "react-map-panel",
-      payload: "init",
-    });
-
-    timeoutRef.current = window.setTimeout(() => {
-      setCurrentFiberTree(null);
-      setStatus("error");
-      setStatusMessage(
-        "Timed out waiting for the inspected page to respond. React DevTools may be missing, the page may not use React, or the bridge may be blocked.",
-      );
-    }, CONNECTION_TIMEOUT_MS);
-
-    // Only after the new port took over, or it would count as a panel close.
-    portRef.current?.disconnect();
-    portRef.current = createdPort;
-  }, [clearConnectionTimeout]);
-
-  const sendCommand = useCallback((command: PanelCommand) => {
-    portRef.current?.postMessage({
-      source: "react-map-panel",
-      payload: command,
-    });
-  }, []);
+    },
+    [markExtensionReloaded],
+  );
 
   const handleSelectNode = useCallback(
     ({ instanceId, name }: NodeRef) => {
@@ -165,7 +295,7 @@ export function useBridgeConnection() {
       setStatus("loading");
       setStatusMessage(WAITING_MESSAGE);
 
-      clearConnectionTimeout();
+      clearTimer(timeoutRef);
       // Stays connected, so a page that is slow to render still shows up.
       timeoutRef.current = window.setTimeout(() => {
         setStatus("no-react");
@@ -175,7 +305,7 @@ export function useBridgeConnection() {
 
     chrome.runtime.onMessage.addListener(onPageLoad);
     return () => chrome.runtime.onMessage.removeListener(onPageLoad);
-  }, [clearConnectionTimeout]);
+  }, []);
 
   useEffect(() => {
     bootstrapTimerRef.current = window.setTimeout(() => {
@@ -185,18 +315,13 @@ export function useBridgeConnection() {
     }, 0);
 
     return () => {
-      if (bootstrapTimerRef.current !== null) {
-        window.clearTimeout(bootstrapTimerRef.current);
-        bootstrapTimerRef.current = null;
-      }
-      clearConnectionTimeout();
-      if (portRef.current) {
-        portRef.current.disconnect();
-        portRef.current = null;
-      }
+      clearTimer(bootstrapTimerRef);
+      clearTimer(reconnectTimerRef);
+      clearTimer(timeoutRef);
+      detachActivePort(true);
       dispatchSelection({ type: "panel-close" });
     };
-  }, [clearConnectionTimeout, connectToBridge, sendCommand]);
+  }, [connectToBridge, detachActivePort, sendCommand]);
 
   const handleRetry = useCallback(() => {
     setCurrentFiberTree(null);

@@ -36,6 +36,16 @@ function App() {
     );
   }
 
+  if (status === "extension-reloaded") {
+    return (
+      <ErrorPage
+        title="Extension reloaded"
+        message={statusMessage}
+        showSetupHints={false}
+      />
+    );
+  }
+
   return (
     <ErrorPage
       title={
