@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Command as CommandPrimitive } from "cmdk";
 import { Check } from "lucide-react";
 import { useMemo, useState } from "react";
+import type { NodeRef } from "@/types";
 import {
   Command,
   CommandEmpty,
@@ -14,88 +15,59 @@ import { Input } from "../ui/input";
 import { Popover, PopoverAnchor, PopoverContent } from "../ui/popover";
 import { Skeleton } from "../ui/skeleton";
 
-type Props<T extends string> = {
-  selectedValue: T;
-  onSelectedValueChange: (value: T) => void;
-  searchValue: string;
-  onSearchValueChange: (value: string) => void;
-  items: { value: T; label: string }[];
+export type SearchBarProps = {
+  nodes: NodeRef[];
+  selectedInstanceId: number | null;
+  onChooseNode: (node: NodeRef) => void;
   isLoading?: boolean;
   emptyMessage?: string;
   placeholder?: string;
 };
 
-export default function AutoComplete<T extends string>({
-  selectedValue,
-  onSelectedValueChange,
-  searchValue,
-  onSearchValueChange,
-  items,
+const toItemValue = (instanceId: number) => String(instanceId);
+
+export function SearchBar({
+  nodes,
+  selectedInstanceId,
+  onChooseNode,
   isLoading,
   emptyMessage = "Cannot find node with that name.",
   placeholder = "Search node...",
-}: Props<T>) {
+}: SearchBarProps) {
   const [open, setOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
-  const labels = useMemo(
-    () =>
-      items.reduce(
-        (acc, item) => {
-          acc[item.value] = item.label;
-          return acc;
-        },
-        {} as Record<string, string>,
-      ),
-    [items],
+  const nodesByItemValue = useMemo(
+    () => new Map(nodes.map((node) => [toItemValue(node.instanceId), node])),
+    [nodes],
   );
 
-  const reset = () => {
-    onSelectedValueChange("" as T);
-    onSearchValueChange("");
-  };
-
   const onInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (
-      !e.relatedTarget?.hasAttribute("cmdk-list") &&
-      labels[selectedValue] !== searchValue
-    ) {
-      reset();
+    if (!e.relatedTarget?.hasAttribute("cmdk-list")) {
+      setSearchValue("");
     }
   };
 
-  const onSelectItem = (inputValue: string) => {
-    if (inputValue === selectedValue) {
-      reset();
-    } else {
-      onSelectedValueChange(inputValue as T);
-      onSearchValueChange(labels[inputValue] ?? "");
-    }
+  const handleChoose = (node: NodeRef) => {
+    onChooseNode(node);
+    setSearchValue("");
     setOpen(false);
   };
 
   return (
     <div className="flex items-center">
       <Popover open={open} onOpenChange={setOpen}>
-        {/* Add the custom filter function */}
         <Command
           filter={(value, search) => {
-            const currentLabel = items.find(
-              (item) => item.value === value,
-            )?.label;
-            if (
-              currentLabel &&
-              currentLabel.toLowerCase().includes(search.toLowerCase())
-            ) {
-              return 1;
-            }
-            return 0;
+            const name = nodesByItemValue.get(value)?.name ?? "";
+            return name.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
           }}
         >
           <PopoverAnchor asChild>
             <CommandPrimitive.Input
               asChild
               value={searchValue}
-              onValueChange={onSearchValueChange}
+              onValueChange={setSearchValue}
               onKeyDown={(e) => setOpen(e.key !== "Escape")}
               onMouseDown={() => setOpen((open) => !!searchValue || !open)}
               onFocus={() => setOpen(true)}
@@ -126,25 +98,24 @@ export default function AutoComplete<T extends string>({
                   </div>
                 </CommandPrimitive.Loading>
               )}
-              {items.length > 0 && !isLoading ? (
+              {nodes.length > 0 && !isLoading ? (
                 <CommandGroup>
-                  {items.map((option) => (
-                    // Ensure value and key are the unique ID
+                  {nodes.map((node) => (
                     <CommandItem
-                      key={option.value}
-                      value={option.value}
+                      key={node.instanceId}
+                      value={toItemValue(node.instanceId)}
                       onMouseDown={(e) => e.preventDefault()}
-                      onSelect={onSelectItem}
+                      onSelect={() => handleChoose(node)}
                     >
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4",
-                          selectedValue === option.value
+                          selectedInstanceId === node.instanceId
                             ? "opacity-100"
                             : "opacity-0",
                         )}
                       />
-                      {option.label}
+                      {node.name}
                     </CommandItem>
                   ))}
                 </CommandGroup>

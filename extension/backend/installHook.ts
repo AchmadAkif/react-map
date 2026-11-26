@@ -1,6 +1,6 @@
 import { debounce } from "./utils";
 import {
-  findFiberByNodePath,
+  findFiberByInstanceId,
   serializeNodeDetail,
   traverseFiberMinimal,
 } from "./fiberCrawler";
@@ -31,7 +31,7 @@ const reactInstances = devtoolsGlobalHook?.renderers;
 const instance = reactInstances?.get?.(1);
 const instanceVersion = instance?.version;
 let latestCommittedRoot: FiberRoot | null = null;
-let activeLockedNodePath: string | null = null;
+let selectedInstanceId: number | null = null;
 
 const postSnapshot = (payload: BackendPayload) => {
   window.postMessage(
@@ -52,14 +52,14 @@ const sendTreeSnapshot = (root: FiberRoot) => {
   } satisfies TreeMinimalSnapshotMessage);
 };
 
-const sendLockedNodeSnapshot = (root: FiberRoot, nodePath: string) => {
-  const lockedFiberNode = findFiberByNodePath(root.current, nodePath);
-  const serializedNode = serializeNodeDetail(lockedFiberNode, nodePath);
+const sendSelectedNodeSnapshot = (root: FiberRoot, instanceId: number) => {
+  const selectedFiberNode = findFiberByInstanceId(root.current, instanceId);
+  const serializedNode = serializeNodeDetail(selectedFiberNode);
 
   postSnapshot({
     mode: "node-detail",
     node: serializedNode,
-    nodePath,
+    instanceId,
   } satisfies NodeDetailSnapshotMessage);
 };
 
@@ -76,8 +76,8 @@ window.addEventListener("message", (event) => {
 
   if (message.payload === "init") {
     if (latestCommittedRoot) {
-      if (activeLockedNodePath) {
-        sendLockedNodeSnapshot(latestCommittedRoot, activeLockedNodePath);
+      if (selectedInstanceId !== null) {
+        sendSelectedNodeSnapshot(latestCommittedRoot, selectedInstanceId);
       } else {
         sendTreeSnapshot(latestCommittedRoot);
       }
@@ -86,23 +86,29 @@ window.addEventListener("message", (event) => {
     return;
   }
 
-  if (message.payload.type === "lock-node") {
-    activeLockedNodePath = message.payload.nodePath;
+  if (message.payload.type === "select-node") {
+    const { instanceId } = message.payload;
+    selectedInstanceId = instanceId;
 
-    if (latestCommittedRoot && activeLockedNodePath) {
-      sendLockedNodeSnapshot(latestCommittedRoot, activeLockedNodePath);
+    if (latestCommittedRoot) {
+      sendSelectedNodeSnapshot(latestCommittedRoot, instanceId);
     }
 
     return;
   }
 
-  if (message.payload.type === "unlock-node") {
-    activeLockedNodePath = null;
+  if (message.payload.type === "panel-close") {
+    selectedInstanceId = null;
+    return;
+  }
+
+  if (message.payload.type === "deselect-node") {
+    selectedInstanceId = null;
 
     postSnapshot({
       mode: "node-detail",
       node: null,
-      nodePath: null,
+      instanceId: null,
     } satisfies NodeDetailSnapshotMessage);
   }
 });
@@ -128,8 +134,8 @@ window.addEventListener("message", (event) => {
 
         sendTreeSnapshot(root);
 
-        if (activeLockedNodePath) {
-          sendLockedNodeSnapshot(root, activeLockedNodePath);
+        if (selectedInstanceId !== null) {
+          sendSelectedNodeSnapshot(root, selectedInstanceId);
         }
       } catch (error) {
         console.error("[React-Map] Error: ", error);

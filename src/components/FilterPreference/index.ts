@@ -1,1 +1,2 @@
-export { default as FilterPreference } from "./FilterPreference.component";
+export { FilterPreference } from "./FilterPreference.component";
+export type { FilterPreferenceProps } from "./FilterPreference.types";

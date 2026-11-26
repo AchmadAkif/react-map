@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "../ui/select";
 
-const OrientationPreference = ({
+export const OrientationPreference = ({
   treeOrientation,
   handleSetOrientation,
 }: OrientationPreferenceProps) => {
@@ -33,5 +33,3 @@ const OrientationPreference = ({
     </div>
   );
 };
-
-export default OrientationPreference;

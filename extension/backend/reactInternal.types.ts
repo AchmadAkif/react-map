@@ -10,35 +10,42 @@
  * @see https://github.com/facebook/react/blob/main/packages/react-reconciler/src/ReactFiberRoot.js
  */
 
-// --- Enums and basic types from React source ---
-// Represents the type of a Fiber node.
-export type WorkTag =
-  | 0 // FunctionComponent
-  | 1 // HostRoot
-  | 2 // IndeterminateComponent (before we know what it is)
-  | 3 // HostPortal
-  | 4 // DehydratedFragment
-  | 5 // HostComponent
-  | 6 // HostText
-  | 7 // Fragment
-  | 8 // Mode
-  | 9 // ContextConsumer
-  | 10 // ContextProvider
-  | 11 // ForwardRef
-  | 12 // Profiler
-  | 13 // SuspenseComponent
-  | 14 // MemoComponent
-  | 15 // SimpleMemoComponent
-  | 16 // LazyComponent
-  | 17 // IncompleteClassComponent
-  | 18 // ScopeComponent
-  | 19 // SuspenseListComponent
-  | 21 // OffscreenComponent
-  | 22 // LegacyHiddenComponent
-  | 23 // CacheComponent
-  | 24 // TracingMarkerComponent
-  | 25 // HostHoistable
-  | 26; // HostSingleton
+// Runtime constants representing React WorkTag values
+export const WorkTag = {
+  FunctionComponent: 0,
+  ClassComponent: 1,
+  IndeterminateComponent: 2,
+  HostRoot: 3,
+  HostPortal: 4,
+  HostComponent: 5,
+  HostText: 6,
+  Fragment: 7,
+  Mode: 8,
+  ContextConsumer: 9,
+  ContextProvider: 10,
+  ForwardRef: 11,
+  Profiler: 12,
+  SuspenseComponent: 13,
+  MemoComponent: 14,
+  SimpleMemoComponent: 15,
+  LazyComponent: 16,
+  IncompleteClassComponent: 17,
+  DehydratedFragment: 18,
+  SuspenseListComponent: 19,
+  ScopeComponent: 21,
+  OffscreenComponent: 22,
+  LegacyHiddenComponent: 23,
+  CacheComponent: 24,
+  TracingMarkerComponent: 25,
+  HostHoistable: 26,
+  HostSingleton: 27,
+  IncompleteFunctionComponent: 28,
+  Throw: 29,
+  ViewTransitionComponent: 30,
+  ActivityComponent: 31,
+} as const;
+
+export type WorkTag = (typeof WorkTag)[keyof typeof WorkTag];
 
 // Describes the type of root.
 export type RootTag = 0 | 1; // LegacyRoot | ConcurrentRoot
@@ -51,7 +58,7 @@ export type LaneMap<T> = Array<T>;
 // --- Main Fiber Node Definition ---
 export interface Fiber {
   // --- Instance ---
-  tag: WorkTag;
+  tag: WorkTag | number;
   key: null | string;
   elementType: any;
   type: any;

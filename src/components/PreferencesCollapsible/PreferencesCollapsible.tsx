@@ -7,17 +7,19 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { DisplayPreferences } from "../DisplayPreferences";
+import { OrientationPreference } from "../OrientationPreference";
+import { FilterPreference } from "../FilterPreference";
+import { SpacingPreference } from "../SpacingPreference";
 
 import type { OrientationPreferenceProps } from "../OrientationPreference/OrientationPreference.types";
 import type { FilterPreferenceProps } from "../FilterPreference/FilterPreference.types";
 import type { SpacingPreferenceProps } from "../SpacingPreference/SpacingPreference.types";
 
-type PreferencesCollapsibleProps = OrientationPreferenceProps &
+export type PreferencesCollapsibleProps = OrientationPreferenceProps &
   FilterPreferenceProps &
   SpacingPreferenceProps;
 
-export default function CollapsibleDemo({
+export function PreferencesCollapsible({
   handleFilterChange,
   handleNodeSpacingChange,
   handleSetOrientation,
@@ -43,13 +45,19 @@ export default function CollapsibleDemo({
         </CollapsibleTrigger>
       </div>
       <CollapsibleContent className="flex flex-col gap-2">
-        <DisplayPreferences
-          treeOrientation={treeOrientation}
+        <div className="flex gap-3">
+          <OrientationPreference
+            handleSetOrientation={handleSetOrientation}
+            treeOrientation={treeOrientation}
+          />
+          <FilterPreference
+            treeFilters={treeFilters}
+            handleFilterChange={handleFilterChange}
+          />
+        </div>
+        <SpacingPreference
           nodeSpacing={nodeSpacing}
-          handleSetOrientation={handleSetOrientation}
           handleNodeSpacingChange={handleNodeSpacingChange}
-          treeFilters={treeFilters}
-          handleFilterChange={handleFilterChange}
         />
       </CollapsibleContent>
     </Collapsible>

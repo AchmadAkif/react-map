@@ -1,1 +1,2 @@
-export { default as ErrorPage } from "./Error.container";
+export { ErrorPage } from "./Error.container";
+export type { ErrorPageProps } from "./Error.container";
