@@ -83,6 +83,43 @@ Contributions are welcome! If you'd like to contribute to the development of `re
 *   `npm run dev`: Starts the development server with hot-reloading.
 *   `npm run build`: Bundles the extension for production.
 *   `npm run lint`: Lints the codebase.
+*   `npm test`: Runs the Vitest unit test suite.
+
+---
+
+## Changelog
+
+### `v1.0.0` (2026-11-26) — Node-Inspection Flow Redesign
+*(Chrome Web Store manifest `version: 1.0.2`, `version_name: 1.0.0`)*
+* **Click-to-select inspection:** Replaced the previous lock/pin workflow with direct click-to-select component inspection (#51, #53, #63).
+* **Dedicated `+/-` branch collapsing:** Added explicit `+/-` collapse/expand controls on tree nodes and preserved collapsed branch state across live React re-renders (#52, #60).
+* **Cleaner tree by default:** Hidden DOM/host nodes by default so the React component hierarchy is immediately readable (#55).
+* **Instance-following selection & clear states:** Selection tracks the component instance across updates (#57), shows details tailored to each node type (#56), clearly indicates unmounted or hidden nodes (#58), and automatically clears on page reload or panel close (#59).
+* **Search selects the node:** Jumping to a search result now selects and inspects that component directly (#54).
+* **Resilient reconnection:** Automatically reconnects the DevTools panel when the background service worker stops and keeps the selected node in sync (#61, #62).
+* **Architecture & testing:** Optimized the backend fiber crawler, broke circular dependencies, refactored frontend state management, and added a unit test suite (120 tests) along with a domain glossary and ADR.
+
+### `v1.0.0-beta.3` (2026-10-03)
+* Removed unnecessary `tabs` and `activeTab` permissions from `manifest.json` (#46, #49).
+* Added a project screenshot and explicit React v16.8+ prerequisites to the README (#47, #48).
+
+### `v1.0.0-beta.2` (2026-05-22)
+* Opened the **Display Preferences** collapsible panel by default and clarified its header label (#44, #45).
+* Updated installation and usage documentation.
+
+### `v1.0.0-beta.1` (2026-05-16)
+* Added live state-panel inspection with node path tracking, minimal tree serialization, and live-updating locked/pinned node inspection (#42, #43).
+* Integrated resizable split panels (`react-resizable-panels`) for the tree and inspector layout.
+* Added type-based syntax coloring for values in `ComponentDetails`, `PropsPanel`, and `StatePanel` (#38).
+* Fixed serialization crashes on `Symbol()` values (#35) and improved error state messaging.
+* Simplified theming by removing manual theme-selection overhead (#40).
+
+### `v0.1.0` (2026-02-05 – 2026-05-10) — Initial Development
+* **Extension & Fiber Hook Foundation:** Built the Chrome Manifest V3 DevTools extension with Vite, React, and TypeScript; patched `__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot`; implemented a debounced React Fiber crawler (`traverseFiber`) and `localhost`-scoped messaging bridge between the injected hook, content script, background service worker, and DevTools panel.
+* **Tree Visualization & Controls:** Integrated `react-d3-tree`, Tailwind CSS, and shadcn/Radix UI; added tree filtering, orientation and node spacing preferences, center-on-click, and `cmdk`-powered component search (`SearchBar`).
+* **Props & State Inspection:** Added `ComponentDetails`, `PropsPanel`, `StatePanel`, `StateBadge`, and `@uiw/react-json-view` with support for React elements, `ForwardRef`, raw text nodes, circular references, depth limits, initial mounted fiber root hydration, and loading/error states.
+
+---
 
 ## Academic Context
 
