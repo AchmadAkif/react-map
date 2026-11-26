@@ -10,26 +10,21 @@ export const Sidebar = ({
   onSetOrientation,
   nodeSpacing,
   onNodeSpacingChange,
-  hoveredNode,
-  lockedNodeUnavailable,
-  lockedNodePath,
-  onLockNodeChange,
+  selection,
+  isSelectionHidden,
+  onDeselectNode,
   treeFilters,
   onFilterChange,
-  searchValue,
-  onSearchValueChange,
-  selectedValue,
-  onSelectedValueChange,
-  renderedNodeData,
+  searchableNodes,
+  selectedInstanceId,
+  onChooseSearchResult,
 }: SidebarProps) => {
   return (
     <div className="h-full overflow-y-auto py-3 shadow-md">
       <SearchBar
-        items={renderedNodeData}
-        searchValue={searchValue}
-        onSearchValueChange={onSearchValueChange}
-        selectedValue={selectedValue}
-        onSelectedValueChange={onSelectedValueChange}
+        nodes={searchableNodes}
+        selectedInstanceId={selectedInstanceId}
+        onChooseNode={onChooseSearchResult}
       />
       <Separator className="my-2" />
       <PreferencesCollapsible
@@ -42,10 +37,9 @@ export const Sidebar = ({
       />
       <Separator className="my-2" />
       <ComponentDetails
-        hoveredNode={hoveredNode ?? null}
-        lockedNodeUnavailable={lockedNodeUnavailable}
-        lockedNodePath={lockedNodePath}
-        onLockNodeChange={onLockNodeChange}
+        selection={selection}
+        isHidden={isSelectionHidden}
+        onDeselectNode={onDeselectNode}
       />
     </div>
   );

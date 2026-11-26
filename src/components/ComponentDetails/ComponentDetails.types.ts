@@ -1,8 +1,12 @@
-import type { InspectableNode } from "../../types";
+import type { TreeNode } from "../../types";
+import type { Selection } from "../../utils";
 
 export interface ComponentDetailsProps {
-  hoveredNode: InspectableNode;
-  lockedNodeUnavailable?: boolean;
-  lockedNodePath: string | null;
-  onLockNodeChange: (nodePath: string | null) => void;
+  selection: Selection;
+  isHidden: boolean;
+  onDeselectNode: () => void;
+}
+
+export interface NodeDetailsProps {
+  details: TreeNode;
 }

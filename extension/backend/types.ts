@@ -1,13 +1,21 @@
 import type { RawNodeDatum } from "react-d3-tree";
 
 export type SerializedFiberNode = RawNodeDatum & {
-  nodePath: string;
+  instanceId: number;
 };
 
+/** The inspectable values of a node, as opposed to its place in the tree. */
+export type NodeDetails = Pick<
+  RawNodeDatum,
+  "state" | "classState" | "props" | "text"
+>;
+
 export type MinimalFiberNode = RawNodeDatum & {
-  nodePath: string;
+  instanceId: number;
   state?: undefined;
+  classState?: undefined;
   props?: undefined;
+  text?: undefined;
 };
 
 export type TreeMinimalSnapshotMessage = {
@@ -18,26 +26,35 @@ export type TreeMinimalSnapshotMessage = {
 export type NodeDetailSnapshotMessage = {
   mode: "node-detail";
   node: SerializedFiberNode | null;
-  nodePath: string | null;
+  instanceId: number | null;
+};
+
+/** Sent once per document, so a hot reload does not send it. */
+export type PageLoadMessage = {
+  mode: "page-load";
 };
 
 export type BackendPayload =
   | TreeMinimalSnapshotMessage
-  | NodeDetailSnapshotMessage;
+  | NodeDetailSnapshotMessage
+  | PageLoadMessage;
 
 export type PanelCommand =
   | {
-      type: "lock-node";
-      nodePath: string | null;
+      type: "select-node";
+      instanceId: number;
     }
   | {
-      type: "unlock-node";
+      type: "deselect-node";
+    }
+  | {
+      type: "panel-close";
     };
 
 export type BridgeSnapshot = {
   tree: MinimalFiberNode | null;
-  lockedNode: SerializedFiberNode | null;
-  lockedNodePath: string | null;
+  selectedNode: SerializedFiberNode | null;
+  selectedInstanceId: number | null;
 };
 
 export type Message = {

@@ -7,25 +7,36 @@ import {
 } from "@/components/ui/resizable";
 
 import { HierarchyTree, Sidebar } from "@/components";
-import { filterTreeData } from "@/utils";
-import { useTreePreferences, useNodeSearch } from "@/hooks";
-import type { InspectableNode, TreeNode } from "@/types";
+import {
+  filterTreeData,
+  isSelectionHidden,
+  listSelectableNodes,
+  type BranchId,
+  type CollapsedBranches,
+  type Selection,
+} from "@/utils";
+import { useDeselectOnEscape, useTreePreferences } from "@/hooks";
+import type { NodeRef, TreeNode } from "@/types";
 
 export interface MainContainerProps {
   data: TreeNode;
-  lockedNodeData?: InspectableNode;
-  lockedNodePath?: string | null;
-  onLockNodeChange: (nodePath: string | null) => void;
+  collapsedBranches: CollapsedBranches;
+  onToggleBranch: (instanceId: BranchId) => void;
+  selection: Selection;
+  onSelectNode: (node: NodeRef) => void;
+  onDeselectNode: () => void;
 }
 
 export const MainContainer = ({
   data,
-  lockedNodeData,
-  lockedNodePath,
-  onLockNodeChange,
+  collapsedBranches,
+  onToggleBranch,
+  selection,
+  onSelectNode,
+  onDeselectNode,
 }: MainContainerProps) => {
   const treeRef = useRef<TreeType>(null);
-  const [hoveredNode, setHoveredNode] = useState<TreeNode | null>(null);
+  const [isSelectedNodeDrawn, setIsSelectedNodeDrawn] = useState(false);
 
   const {
     treeOrientation,
@@ -36,28 +47,35 @@ export const MainContainer = ({
     handleFilterChange,
   } = useTreePreferences();
 
-  const {
-    searchValue,
-    setSearchValue,
-    selectedValue,
-    setSelectedValue,
-    renderedNodeData,
-    selectedNode,
-    handleRenderedTreeData,
-  } = useNodeSearch();
-
   const filteredTreeData = useMemo(
     () => filterTreeData(data, treeFilters),
     [data, treeFilters],
   );
 
-  const handleOnNodeHover = (node: TreeNode) => {
-    setHoveredNode(node);
+  const searchableNodes = useMemo(
+    () => listSelectableNodes(filteredTreeData),
+    [filteredTreeData],
+  );
+
+  const isHidden = useMemo(
+    () => isSelectionHidden(selection, data, isSelectedNodeDrawn),
+    [selection, data, isSelectedNodeDrawn],
+  );
+
+  const handleChooseSearchResult = (node: NodeRef) => {
+    onSelectNode(node);
+
+    // A result inside a collapsed branch is not drawn, so it stays uncentered.
+    const tree = treeRef.current;
+    const drawnNode = tree
+      ?.generateTree()
+      .nodes.find(({ data }) => data.instanceId === node.instanceId);
+    if (drawnNode) tree?.centerNode(drawnNode);
   };
 
-  const isLockActive = typeof lockedNodePath === "string";
-  const lockedNodeUnavailable = isLockActive && lockedNodeData === null;
-  const activeNode = isLockActive ? lockedNodeData : hoveredNode;
+  const hasSelection = selection.status !== "none";
+  const selectedInstanceId = hasSelection ? selection.instanceId : null;
+  useDeselectOnEscape(hasSelection, onDeselectNode);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -68,10 +86,11 @@ export const MainContainer = ({
             data={filteredTreeData}
             treeOrientation={treeOrientation}
             nodeSize={nodeSpacing}
-            handleOnNodeHover={handleOnNodeHover}
-            treeFilters={treeFilters}
-            onRenderedTreeData={handleRenderedTreeData}
-            selectedNode={selectedNode}
+            collapsedBranches={collapsedBranches}
+            onToggleBranch={onToggleBranch}
+            selectedInstanceId={selectedInstanceId}
+            onSelectNode={onSelectNode}
+            onSelectedNodeDrawnChange={setIsSelectedNodeDrawn}
           />
         </ResizablePanel>
         <ResizableHandle withHandle />
@@ -81,17 +100,14 @@ export const MainContainer = ({
             onSetOrientation={handleSetOrientation}
             nodeSpacing={nodeSpacing}
             onNodeSpacingChange={handleNodeSpacingChange}
-            hoveredNode={activeNode}
-            lockedNodeUnavailable={lockedNodeUnavailable}
-            lockedNodePath={lockedNodePath ?? null}
-            onLockNodeChange={onLockNodeChange}
+            selection={selection}
+            isSelectionHidden={isHidden}
+            onDeselectNode={onDeselectNode}
             treeFilters={treeFilters}
             onFilterChange={handleFilterChange}
-            searchValue={searchValue}
-            onSearchValueChange={setSearchValue}
-            selectedValue={selectedValue}
-            onSelectedValueChange={setSelectedValue}
-            renderedNodeData={renderedNodeData}
+            searchableNodes={searchableNodes}
+            selectedInstanceId={selectedInstanceId}
+            onChooseSearchResult={handleChooseSearchResult}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

@@ -1,14 +1,16 @@
-import type { Ref } from "react";
+import type { RefObject } from "react";
 import type { Tree } from "react-d3-tree";
-import type { NodeSpacing, RenderedNode, TreeFilters, TreeNode } from "../../types";
+import type { NodeRef, NodeSpacing, TreeNode } from "../../types";
+import type { BranchId, CollapsedBranches } from "../../utils";
 
 export interface HierarchyTreeProps {
-  treeRef: Ref<Tree>;
+  treeRef: RefObject<Tree | null>;
   data: TreeNode | null;
   treeOrientation: "vertical" | "horizontal";
   nodeSize: NodeSpacing;
-  handleOnNodeHover?: (node: TreeNode) => void;
-  treeFilters: TreeFilters;
-  onRenderedTreeData: (data: RenderedNode[]) => void;
-  selectedNode: RenderedNode | null;
+  collapsedBranches: CollapsedBranches;
+  onToggleBranch: (instanceId: BranchId) => void;
+  selectedInstanceId: number | null;
+  onSelectNode: (node: NodeRef) => void;
+  onSelectedNodeDrawnChange: (isDrawn: boolean) => void;
 }

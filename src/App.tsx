@@ -5,11 +5,13 @@ import { useBridgeConnection } from "@/hooks";
 function App() {
   const {
     currentFiberTree,
-    lockedNodeData,
-    lockedNodePath,
+    collapsedBranches,
+    selection,
     status,
     statusMessage,
-    handleLockNodeChange,
+    handleToggleBranch,
+    handleSelectNode,
+    handleDeselectNode,
     handleRetry,
   } = useBridgeConnection();
 
@@ -17,9 +19,11 @@ function App() {
     return (
       <MainContainer
         data={currentFiberTree}
-        lockedNodeData={lockedNodeData}
-        lockedNodePath={lockedNodePath}
-        onLockNodeChange={handleLockNodeChange}
+        collapsedBranches={collapsedBranches}
+        onToggleBranch={handleToggleBranch}
+        selection={selection}
+        onSelectNode={handleSelectNode}
+        onDeselectNode={handleDeselectNode}
       />
     );
   }
@@ -29,6 +33,16 @@ function App() {
       <div className="h-screen flex items-center justify-center">
         <Spinner />
       </div>
+    );
+  }
+
+  if (status === "extension-reloaded") {
+    return (
+      <ErrorPage
+        title="Extension reloaded"
+        message={statusMessage}
+        showSetupHints={false}
+      />
     );
   }
 

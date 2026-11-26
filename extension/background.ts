@@ -1,4 +1,9 @@
-import type { BackendPayload, BridgeSnapshot, Message } from "./backend/types";
+import type {
+  BackendPayload,
+  BridgeSnapshot,
+  Message,
+  PanelCommand,
+} from "./backend/types";
 
 /**
  * Map of active port connections indexed by tab ID.
@@ -12,6 +17,18 @@ const cache: Record<number, BridgeSnapshot> = {};
  */
 const allowedMsgSources = ["react-map-content-script"];
 
+const postToPanel = (port: chrome.runtime.Port, payload: BackendPayload) => {
+  port.postMessage({ source: "react-map-backend", payload });
+};
+
+const sendToPage = (tabId: number, payload: Message["payload"] | PanelCommand) => {
+  chrome.tabs.sendMessage(tabId, { source: "react-map-panel", payload }, () => {
+    if (chrome.runtime.lastError) {
+      return;
+    }
+  });
+};
+
 const handleConnection = (port: chrome.runtime.Port) => {
   const tabId = Number(port.name);
 
@@ -22,9 +39,12 @@ const handleConnection = (port: chrome.runtime.Port) => {
 
       const cachedPayload = cache[tabId];
       if (cachedPayload !== undefined) {
-        port.postMessage({
-          source: "react-map-backend",
-          payload: cachedPayload,
+        const { tree, selectedNode, selectedInstanceId } = cachedPayload;
+        postToPanel(port, { mode: "tree-minimal", tree });
+        postToPanel(port, {
+          mode: "node-detail",
+          node: selectedNode,
+          instanceId: selectedInstanceId,
         });
       }
 
@@ -32,11 +52,7 @@ const handleConnection = (port: chrome.runtime.Port) => {
     }
 
     if (message.source === "react-map-panel" && message.payload !== "init") {
-      chrome.tabs.sendMessage(tabId, message, () => {
-        if (chrome.runtime.lastError) {
-          return;
-        }
-      });
+      sendToPage(tabId, message.payload);
       return;
     }
 
@@ -45,7 +61,21 @@ const handleConnection = (port: chrome.runtime.Port) => {
 
   const portDisconnectListener = () => {
     port.onMessage.removeListener(portMessageListener);
+    // A retry replaces the port before dropping the old one.
+    if (connections[tabId] !== port) return;
+
+    // An unexpected disconnect is this worker stopping, which never gets here,
+    // so the panel was closed. The panel cannot say so itself: Chrome does not
+    // deliver messages it posts while closing.
     delete connections[tabId];
+    if (cache[tabId]) {
+      cache[tabId] = {
+        ...cache[tabId],
+        selectedNode: null,
+        selectedInstanceId: null,
+      };
+    }
+    sendToPage(tabId, { type: "panel-close" });
     console.log(`tab ${tabId} disconnected`);
   };
 
@@ -81,31 +111,37 @@ const handleMessage = (
     senderTabId !== undefined
   ) {
     const payload = message.payload as unknown as BackendPayload;
+
+    if (payload.mode === "page-load") {
+      // The panel receives this message itself.
+      delete cache[senderTabId];
+      return;
+    }
+
     const existingSnapshot = cache[senderTabId] ?? {
       tree: null,
-      lockedNode: null,
-      lockedNodePath: null,
+      selectedNode: null,
+      selectedInstanceId: null,
     };
 
     if (payload.mode === "tree-minimal") {
       cache[senderTabId] = {
         tree: payload.tree,
-        lockedNode: existingSnapshot.lockedNode,
-        lockedNodePath: existingSnapshot.lockedNodePath,
+        selectedNode: existingSnapshot.selectedNode,
+        selectedInstanceId: existingSnapshot.selectedInstanceId,
       };
     } else {
       cache[senderTabId] = {
         ...existingSnapshot,
-        lockedNode: payload.node,
-        lockedNodePath: payload.nodePath,
+        selectedNode: payload.node,
+        selectedInstanceId: payload.instanceId,
       };
     }
 
     if (senderTabId in connections) {
-      connections[senderTabId].postMessage({
-        source: "react-map-backend",
-        payload: cache[senderTabId],
-      });
+      // Forward only what changed: resending the tree with every detail would
+      // reset the drawn tree, and resending cached details could be stale.
+      postToPanel(connections[senderTabId], payload);
       return;
     }
     return;

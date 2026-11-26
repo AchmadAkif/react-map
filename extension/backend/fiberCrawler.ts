@@ -1,17 +1,11 @@
 import * as utils from "./utils";
+import { getInstanceId, readInstanceId } from "./instanceId";
 import { WorkTag, type Fiber } from "./reactInternal.types";
-import type { MinimalFiberNode, SerializedFiberNode } from "./types";
+import type { MinimalFiberNode, NodeDetails, SerializedFiberNode } from "./types";
 
 export interface TraverseOptions {
   includeDetails?: boolean;
 }
-
-export const buildNodePath = (
-  parentPath: string,
-  childIndex: number,
-): string => {
-  return parentPath ? `${parentPath}/${childIndex}` : `${childIndex}`;
-};
 
 /**
  * Checks if a fiber node represents a transparent container that should not
@@ -22,62 +16,49 @@ const isTransparentNode = (node: Fiber): boolean => {
 };
 
 /**
+ * Reads the details that suit the kind of node. A detail that does not apply
+ * is left out, while one that applies but is empty is null.
+ */
+const getNodeDetails = (node: Fiber): NodeDetails => {
+  // React keeps a text node's text in place of its props object.
+  if (node.tag === WorkTag.HostText) return { text: node.memoizedProps };
+
+  const props = utils.getComponentProps(node);
+
+  switch (node.tag) {
+    case WorkTag.ClassComponent:
+    case WorkTag.IncompleteClassComponent:
+      return { classState: utils.getClassState(node), props };
+
+    case WorkTag.HostComponent:
+    case WorkTag.HostHoistable:
+    case WorkTag.HostSingleton:
+      return { props };
+
+    default:
+      return { state: utils.getComponentHooks(node), props };
+  }
+};
+
+/**
  * Recursively collects visible children from a fiber node.
  * Transparent nodes (HostRoot and Mode) are skipped and their children are flattened.
  */
 const collectChildren = (
   parentFiber: Fiber,
-  parentPath: string,
   options: TraverseOptions,
   isParentDOM: boolean,
 ): SerializedFiberNode[] => {
   const result: SerializedFiberNode[] = [];
-  let serializedChildIndex = 0;
   let child = parentFiber.child;
 
   while (child) {
-    // Skip raw text nodes inside HTML host elements
-    if (isParentDOM && child.tag === WorkTag.HostText) {
-      child = child.sibling;
-      continue;
-    }
-
     if (isTransparentNode(child)) {
-      // Collect children from the transparent wrapper node
-      let transparentChild = child.child;
-      while (transparentChild) {
-        if (isTransparentNode(transparentChild)) {
-          // If nested transparent node, recurse
-          const nested = collectChildren(
-            transparentChild,
-            parentPath,
-            options,
-            isParentDOM,
-          );
-          for (const item of nested) {
-            result.push({
-              ...item,
-              nodePath: buildNodePath(parentPath, serializedChildIndex),
-            });
-            serializedChildIndex += 1;
-          }
-        } else {
-          const childPath = buildNodePath(parentPath, serializedChildIndex);
-          const treeChild = traverseFiber(transparentChild, childPath, options);
-          if (treeChild) {
-            result.push(treeChild);
-            serializedChildIndex += 1;
-          }
-        }
-        transparentChild = transparentChild.sibling;
-      }
-    } else {
-      const childPath = buildNodePath(parentPath, serializedChildIndex);
-      const treeChild = traverseFiber(child, childPath, options);
-      if (treeChild) {
-        result.push(treeChild);
-        serializedChildIndex += 1;
-      }
+      result.push(...collectChildren(child, options, isParentDOM));
+    } else if (!(isParentDOM && child.tag === WorkTag.HostText)) {
+      // Raw text nodes inside HTML host elements are skipped
+      const treeChild = traverseFiber(child, options);
+      if (treeChild) result.push(treeChild);
     }
 
     child = child.sibling;
@@ -91,13 +72,11 @@ const collectChildren = (
  * Supports minimal mode (for full-tree broadcast) or detailed mode (with state & props).
  *
  * @param node - The Fiber node to traverse.
- * @param nodePath - The hierarchical path string representing this node's location.
  * @param options - Traversal options (e.g. whether to include state & props).
  * @returns A serialized representation of the Fiber node and its children, or null.
  */
 export const traverseFiber = (
   node: Fiber | null,
-  nodePath = "",
   options: TraverseOptions = {},
 ): SerializedFiberNode | null => {
   if (!node) return null;
@@ -106,7 +85,7 @@ export const traverseFiber = (
   if (isTransparentNode(node)) {
     let child = node.child;
     while (child) {
-      const treeChild = traverseFiber(child, nodePath, options);
+      const treeChild = traverseFiber(child, options);
       if (treeChild) return treeChild;
       child = child.sibling;
     }
@@ -122,14 +101,11 @@ export const traverseFiber = (
     },
     children: [],
     isDOM,
-    nodePath,
-    ...(options.includeDetails && {
-      state: utils.getComponentHooks(node),
-      props: utils.getComponentProps(node),
-    }),
+    instanceId: getInstanceId(node),
+    ...(options.includeDetails && getNodeDetails(node)),
   };
 
-  const children = collectChildren(node, nodePath, options, isDOM);
+  const children = collectChildren(node, options, isDOM);
   if (children.length > 0) {
     treeData.children = children;
   }
@@ -142,19 +118,17 @@ export const traverseFiber = (
  */
 export const traverseFiberMinimal = (
   node: Fiber | null,
-  nodePath = "",
 ): MinimalFiberNode | null => {
-  return traverseFiber(node, nodePath, {
+  return traverseFiber(node, {
     includeDetails: false,
   }) as MinimalFiberNode | null;
 };
 
 /**
- * Serializes state and props for a single locked fiber node.
+ * Serializes the details of the selected fiber node.
  */
 export const serializeNodeDetail = (
   node: Fiber | null,
-  nodePath: string,
 ): SerializedFiberNode | null => {
   if (!node) return null;
 
@@ -164,70 +138,26 @@ export const serializeNodeDetail = (
       nodeType: utils.getMetadataLabel(node.tag),
     },
     isDOM: node.tag === WorkTag.HostComponent,
-    state: utils.getComponentHooks(node),
-    props: utils.getComponentProps(node),
-    nodePath,
+    ...getNodeDetails(node),
+    instanceId: getInstanceId(node),
   };
 };
 
 /**
- * Finds a Fiber node by its exact hierarchical nodePath using prefix-pruned tree descent.
+ * Finds the mounted fiber of a component instance by its ID. Returns null once
+ * the instance has unmounted.
  */
-export const findFiberByNodePath = (
+export const findFiberByInstanceId = (
   node: Fiber | null,
-  targetPath: string,
-  currentPath = "",
+  instanceId: number,
 ): Fiber | null => {
   if (!node) return null;
+  if (readInstanceId(node) === instanceId) return node;
 
-  if (isTransparentNode(node)) {
-    let child = node.child;
-    while (child) {
-      const found = findFiberByNodePath(child, targetPath, currentPath);
-      if (found) return found;
-      child = child.sibling;
-    }
-    return null;
-  }
-
-  if (currentPath === targetPath) {
-    return node;
-  }
-
-  const isDOM = node.tag === WorkTag.HostComponent;
-  let serializedChildIndex = 0;
   let child = node.child;
-
   while (child) {
-    if (isDOM && child.tag === WorkTag.HostText) {
-      child = child.sibling;
-      continue;
-    }
-
-    if (isTransparentNode(child)) {
-      let transparentChild = child.child;
-      while (transparentChild) {
-        const childPath = buildNodePath(currentPath, serializedChildIndex);
-        if (targetPath === childPath || targetPath.startsWith(childPath + "/")) {
-          const found = findFiberByNodePath(
-            transparentChild,
-            targetPath,
-            childPath,
-          );
-          if (found) return found;
-        }
-        serializedChildIndex += 1;
-        transparentChild = transparentChild.sibling;
-      }
-    } else {
-      const childPath = buildNodePath(currentPath, serializedChildIndex);
-      if (targetPath === childPath || targetPath.startsWith(childPath + "/")) {
-        const found = findFiberByNodePath(child, targetPath, childPath);
-        if (found) return found;
-      }
-      serializedChildIndex += 1;
-    }
-
+    const found = findFiberByInstanceId(child, instanceId);
+    if (found) return found;
     child = child.sibling;
   }
 

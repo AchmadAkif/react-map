@@ -10,7 +10,7 @@ export function useTreePreferences() {
   });
   const [treeFilters, setTreeFilters] = useState<TreeFilters>({
     hideRouterComponent: false,
-    hideDomComponent: false,
+    hideDomComponent: true,
     hideReduxComponent: false,
   });
 

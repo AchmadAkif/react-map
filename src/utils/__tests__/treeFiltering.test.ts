@@ -15,28 +15,28 @@ describe("treeFiltering utils", () => {
 
   const sampleTree: TreeNode = {
     name: "App",
-    nodePath: "0",
+    instanceId: 1,
     attributes: { nodeType: "FunctionComponent" },
     children: [
       {
         name: "BrowserRouter",
-        nodePath: "0/0",
+        instanceId: 2,
         attributes: { nodeType: "FunctionComponent" },
         children: [
           {
             name: "Provider",
-            nodePath: "0/0/0",
+            instanceId: 3,
             attributes: { nodeType: "FunctionComponent" },
             children: [
               {
                 name: "div",
-                nodePath: "0/0/0/0",
+                instanceId: 4,
                 isDOM: true,
                 attributes: { nodeType: "HostComponent" },
                 children: [
                   {
                     name: "UserProfile",
-                    nodePath: "0/0/0/0/0",
+                    instanceId: 5,
                     attributes: { nodeType: "FunctionComponent" },
                   },
                 ],
@@ -72,6 +72,65 @@ describe("treeFiltering utils", () => {
     expect(filtered?.children?.[0]?.children?.[0]?.children?.[0]?.name).toBe(
       "UserProfile",
     );
+  });
+
+  it.each([
+    ["element", "div", "HostComponent"],
+    ["text", "Anonymous", "Text"],
+    ["hoistable", "title", "HostHoistable"],
+    ["singleton", "body", "HostSingleton"],
+  ])(
+    "hides %s nodes and keeps their component descendants in place",
+    (_kind, name, nodeType) => {
+      const tree: TreeNode = {
+        name: "App",
+        instanceId: 1,
+        attributes: { nodeType: "FunctionComponent" },
+        children: [
+          { name: "Before", attributes: { nodeType: "FunctionComponent" } },
+          {
+            name,
+            attributes: { nodeType },
+            children: [
+              {
+                name: "Inside",
+                instanceId: 99,
+                attributes: { nodeType: "FunctionComponent" },
+              },
+            ],
+          },
+          { name: "After", attributes: { nodeType: "FunctionComponent" } },
+        ],
+      };
+
+      const filtered = filterTreeData(tree, {
+        ...defaultFilters,
+        hideDomComponent: true,
+      });
+
+      expect(filtered?.children?.map((child) => child.name)).toEqual([
+        "Before",
+        "Inside",
+        "After",
+      ]);
+      expect(filtered?.children?.[1].instanceId).toBe(99);
+      expect(filterTreeData(tree, defaultFilters)).toEqual(tree);
+    },
+  );
+
+  it.each([
+    ["Anonymous", "Fragment"],
+    ["Theme.Provider", "ContextProvider"],
+    ["Anonymous", "SuspenseComponent"],
+    ["Anonymous", "HostPortal"],
+    ["Text", "FunctionComponent"],
+  ])("does not treat %s (%s) as a DOM node", (name, nodeType) => {
+    expect(
+      shouldHideNode(
+        { name, isDOM: false, attributes: { nodeType } },
+        { ...defaultFilters, hideDomComponent: true },
+      ),
+    ).toBe(false);
   });
 
   it("should hide router components when hideRouterComponent is true", () => {

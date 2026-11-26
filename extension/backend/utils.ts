@@ -89,6 +89,9 @@ export const getComponentName = (node: Fiber): string => {
   return component;
 };
 
+/** Rendered as "undefined" by the panel. */
+const UNDEFINED_PLACEHOLDER = "__react_map_undefined__";
+
 const handleHookValue = (
   val: any,
   hookType: string,
@@ -202,13 +205,26 @@ export const getComponentHooks = (node: Fiber): componentHook[] | null => {
   return hooks;
 };
 
+/** Reads a class component's state, which is a plain object, by key. */
+export const getClassState = (node: Fiber): Record<string, unknown> | null => {
+  if (!node.memoizedState) return null;
+
+  return Object.fromEntries(
+    Object.entries(node.memoizedState).map(([key, value]) => [
+      key,
+      // The bridge drops undefined values, so keep the key with a placeholder.
+      value === undefined ? UNDEFINED_PLACEHOLDER : handleHookValue(value, "State"),
+    ]),
+  );
+};
+
 const handlePropValue = (val: any, visited = new WeakSet(), depth = 0): any => {
   /**
    * Since undefined values in objects are stripped by the postMessage clone algorithm.
    * we decided to use a unique placeholder string. This ensures the key is preserved across the bridge.
    * The UI's renderValue function will detect this specific string and render it as "undefined".
    */
-  if (val === undefined) return "__react_map_undefined__";
+  if (val === undefined) return UNDEFINED_PLACEHOLDER;
 
   if (val === null) return null;
 
